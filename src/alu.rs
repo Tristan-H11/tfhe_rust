@@ -38,6 +38,10 @@ pub fn start() -> Result<(), Box<dyn std::error::Error>> {
     bincode::serialize_into(&mut serialized_data, &a)?;
     bincode::serialize_into(&mut serialized_data, &b)?;
 
+    /*
+    Hier werden die serialisierten Daten an den Server geben und dort wird gerechnet.
+    Das ist analog zur Dateischnittstelle aus dem C-Projekt.
+     */
     let calculated_result = server_function(&serialized_data)?;
     let deserialized_result: FheUint8 = bincode::deserialize(&calculated_result)?;
 

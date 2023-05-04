@@ -1,6 +1,7 @@
-use tfhe::{ConfigBuilder, FheUint8, generate_keys, ServerKey, set_server_key};
+use tfhe::{ConfigBuilder, FheUint8, generate_keys, set_server_key};
 use tfhe::prelude::*;
 
+#[allow(dead_code)]
 pub fn start() {
     let config = ConfigBuilder::all_disabled()
         .enable_default_uint8()

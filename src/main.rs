@@ -1,9 +1,13 @@
 mod memory_access;
 mod alu;
+mod server;
+mod client;
+mod verify;
 
 fn main() {
-    // memory_access::start();
-    alu::start();
+    client::start().expect("Fehler im Client!");
+    server::start().expect("Fehler im Server!");
+    verify::start().expect("Fehler im Verify!");
 }
 
 /*

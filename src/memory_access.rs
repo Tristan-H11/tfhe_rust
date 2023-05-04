@@ -23,7 +23,7 @@ pub fn start() {
     // Serverside
     set_server_key(server_key);
 
-    let mut result = FheUint8::encrypt(0, &client_key);
+    let mut result = FheUint8::encrypt(0, &client_key); // TODO Irgendwie ist das blöd, wenn hier der client_key genutzt wird
 
     for (i, value) in memory.iter().enumerate() {
         let index = FheUint8::encrypt(i as u8, &client_key);

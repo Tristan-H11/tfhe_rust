@@ -1,40 +1,42 @@
-use tfhe::{ConfigBuilder, FheUint8, generate_keys, set_server_key};
+use std::error::Error;
+use tfhe::{FheUint8, GenericInteger};
 use tfhe::prelude::*;
 
-#[allow(dead_code)]
-pub fn start() {
-    let config = ConfigBuilder::all_disabled()
-        .enable_default_uint8()
-        .build();
+/// Darstellung des RAMs über ein 256 Felder großes Array
+struct Memory {
+    pub(crate) memory: [FheUint8; 256],
+}
 
-    let (client_key, server_key) = generate_keys(config);
+impl Memory {
 
-    let mut memory: Vec<FheUint8> = Vec::new();
+    /// Liest einen Wert aus dem RAM, in dem jede Zeile einmal gelesen wird.
+    /// Der "unsichtbare" Zugriff ist durch die arithmetische Logik anstelle von
+    /// Verzweigungen gelöst.
+    pub fn read_from_ram(&self, address: FheUint8) -> Result<FheUint8, Box<dyn Error>> {
+        let  mut result = FheUint8::try_encrypt_trivial(0u8).unwrap();
+        for (i, value) in self.memory.iter().enumerate() {
+            let encrypted_index = FheUint8::try_encrypt_trivial(i as u8).unwrap();
 
-    for i in 0..8 {
-        memory.append(&mut vec![FheUint8::encrypt(i * 2, &client_key)]);
-        println!("Memory {} geschrieben!", i);
-    }
-    /*
-        Memory = {0,2,4,6,8,10,12,14}
-     */
-
-    let target_index = FheUint8::encrypt(4, &client_key);
-
-    // Serverside
-    set_server_key(server_key);
-
-    let mut result = FheUint8::encrypt(0, &client_key); // TODO Irgendwie ist das blöd, wenn hier der client_key genutzt wird
-
-    for (i, value) in memory.iter().enumerate() {
-        let index = FheUint8::encrypt(i as u8, &client_key);
-        let equal = index.eq(&target_index);
-
-        result = result + (value * equal);
+            result = result + (value * address.eq(&encrypted_index));
+        }
+        Ok(result)
     }
 
+    /// Schreibt einen Wert in den RAM und liest sowie schreibt dabei jede Zeile des RAMs einmal, damit
+    /// kein Rückschluss auf die veränderte Zeile gezogen werden kann.
+    pub fn write_to_ram(&mut self, address: FheUint8, value: FheUint8) {
 
-    // Clientside
-    let result_decrypted: u8 = result.decrypt(&client_key);
-    println!("Das Ergebnis ist {}", result_decrypted);
+        let max_value: FheUint8 = FheUint8::try_encrypt_trivial(255u8).unwrap();
+
+        for (i, field) in self.memory.iter_mut().enumerate() {
+            let encrypted_index: FheUint8 = FheUint8::try_encrypt_trivial(i as u8).unwrap();
+
+            let condition: FheUint8 = address.eq(&encrypted_index);
+            // X ^ 1 = !X, deshalb wird hier Condition mit 1111_1111 xOr't
+            let not_condition: FheUint8 = &condition ^ &max_value;
+
+            // m_x = (indexEqual AND newValue) OR (!indexEqual AND m_x)
+            *field = (condition * value.clone()) + (not_condition * field.clone());
+        }
+    }
 }

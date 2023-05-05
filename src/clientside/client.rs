@@ -1,9 +1,11 @@
 use std::error::Error;
 use std::fs::File;
-use tfhe::{ConfigBuilder, FheUint8, generate_keys, GenericInteger};
-use tfhe::prelude::*;
+use std::io::Write;
+
 use bincode;
-use std::io::{Write};
+use tfhe::{ConfigBuilder, FheUint8, generate_keys};
+use tfhe::prelude::*;
+
 use crate::clientside::statics::*;
 
 /// Client-Main-Funktion.
@@ -14,7 +16,6 @@ use crate::clientside::statics::*;
 /// - die OpCodes der Maschinensprache verschlüsselt und serialisiert,
 /// - die Operanden und der OpCode für die Alu verschlüsselt und serialisiert. (Das wird sich demnächst ändern, wenn die CU gebaut wird)
 pub fn start() -> Result<(), Box<dyn Error>> {
-
     let config = ConfigBuilder::all_disabled()
         .enable_default_uint8()
         .build();
@@ -24,16 +25,16 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let mut serialized_server_key = Vec::new();
     bincode::serialize_into(&mut serialized_server_key, &server_key)?;
 
-    let mut file = File::create("C:\\Users\\tridd\\IdeaProjects\\tfhe_rust\\src\\server_key.bin").expect("Datei erstellen fehlgeschlagen!");
-    file.write_all(serialized_server_key.as_slice()).expect("ServerKey konnte nicht geschrieben werden!");
+    let mut file = File::create("C:\\Users\\tridd\\IdeaProjects\\tfhe_rust\\src\\server_key.bin")?;
+    file.write_all(serialized_server_key.as_slice())?;
 
 
     // ClientKey speichern
     let mut serialized_private_key = Vec::new();
     bincode::serialize_into(&mut serialized_private_key, &client_key)?;
 
-    let mut file = File::create("C:\\Users\\tridd\\IdeaProjects\\tfhe_rust\\src\\private_key.bin").expect("Datei erstellen fehlgeschlagen!");
-    file.write_all(serialized_private_key.as_slice()).expect("PrivateKey konnte nicht geschrieben werden!");
+    let mut file = File::create("C:\\Users\\tridd\\IdeaProjects\\tfhe_rust\\src\\private_key.bin")?;
+    file.write_all(serialized_private_key.as_slice())?;
 
 
     // Daten speichern
@@ -46,12 +47,12 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         RAM_WRITE,
         OP_CODE,
         OP_A,
-        OP_B
+        OP_B,
     ];
 
     // Alle Werte im Vector verschlüsseln
     let encrypted_data: Vec<FheUint8> = data.iter()
-        .map(|&x : &u8| FheUint8::encrypt(x, &client_key))
+        .map(|&x: &u8| FheUint8::encrypt(x, &client_key))
         .collect();
 
     let mut serialized_data = Vec::new();
@@ -59,8 +60,8 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         bincode::serialize_into(&mut serialized_data, &encrypted_value)?;
     }
 
-    let mut file = File::create("C:\\Users\\tridd\\IdeaProjects\\tfhe_rust\\src\\data.bin").expect("Datei erstellen fehlgeschlagen!");
-    file.write_all(serialized_data.as_slice()).expect("Konnte Daten nicht in die Datei schreiben!");
+    let mut file = File::create("C:\\Users\\tridd\\IdeaProjects\\tfhe_rust\\src\\data.bin")?;
+    file.write_all(serialized_data.as_slice())?;
 
     Ok(())
 }

@@ -1,4 +1,5 @@
 use std::error::Error;
+
 use tfhe::FheUint8;
 use tfhe::prelude::*;
 
@@ -20,7 +21,7 @@ impl Alu {
     /// Berechnet Anhang des übergebenen OpCodes das Ergebnis der beiden Operanden.
     /// Die Berechnung verfolgt ohne Verzweigung über die folgende Logik:
     /// `result = (add_result * op_code.eq(opcode_add)) + (and_result * op_code.eq(opcode_and)) + (or_result * op_code.eq(opcode_or)) + (xor_result * op_code.eq(opcode_xor))`
-    /// 
+    ///
     /// Soweit alle OpCodes richtig gesetzt sind und ein zulässiger op_code übergeben wird, wird immer ein Ergebnis berechnet.
     /// Sollten OpCodes falsch gesetzt sein, kann fälschlicherweise `0` berechnet werden.
     pub fn calculate(&self, op_code: FheUint8, a: FheUint8, b: FheUint8) -> Result<FheUint8, Box<dyn Error>> {

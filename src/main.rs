@@ -1,7 +1,8 @@
-mod clientside;
-mod serverside;
 use crate::clientside::{client, verify};
 use crate::serverside::server;
+
+mod clientside;
+mod serverside;
 
 /// Einstiegspunkt für die Entwicklung.
 /// Später müssen die drei `start()` Funktionen die Main-Funktionen der entsprechenden

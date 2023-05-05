@@ -9,13 +9,19 @@ use std::io::{Cursor, Read, Write};
 use tfhe::prelude::FheTryTrivialEncrypt;
 use crate::serverside::alu::Alu;
 
+/// Server-Main-Funktion.
+/// Hier werden:
+/// - Der ServerKey eingelesen und gesetzt,
+/// - die Daten vom Client eingelesen und deserialisiert,
+/// - der OpCode und die Operanden von der ALU berechnet und
+/// - das Ergebnis wieder abgespeichert.
 ///
-/// Hier werden die Berechnungen auf den verschlüsselten Daten getätigt.
-/// Am Ende soll das hier die gesamte CPU-Simulation sein, auf der am Ende alles ausgelesen wird
-///
-
+/// Später sollen die Eingaben des Nutzers in einer Struktur gespeichert werden, die einen
+/// Program-RAM und einen Program-Counter simulieren, damit "richtige" Programmabläufe möglich
+/// werden.
 pub fn start() -> Result<(), Box<dyn Error>> {
-//////// Server Key einlesen
+
+    // Server Key einlesen
     let mut serialized_server_key = Vec::new();
     let mut file = File::open("C:\\Users\\tridd\\IdeaProjects\\tfhe_rust\\src\\server_key.bin")
         .expect("Konnte datei nicht öffnen!");
@@ -24,7 +30,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
     set_server_key(server_key);
 
-//////// Daten einlesen
+    // Daten einlesen
     let mut data = Vec::new();
     let mut file = File::open("C:\\Users\\tridd\\IdeaProjects\\tfhe_rust\\src\\data.bin")
         .expect("Konnte datei nicht öffnen!");
@@ -33,7 +39,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
     let mut serialized_data = Cursor::new(data);
 
-//////// ALU konstruieren
+    // ALU konstruieren
     let opcode_add: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
     let opcode_and: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
     let opcode_or: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
@@ -46,23 +52,19 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         opcode_xor
     };
 
-//////// Memory-Access konstruieren
+    // Memory-Access konstruieren
     let ram_read: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
     let ram_write: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
 
     //TODO: Memory bauen und einbinden
 
-
-
+    // Ergebnis berechnen
     let op_code: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
     let a: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
     let b: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
-
-
-//////// Ergebnis berechnen
     let result = alu.calculate(op_code, a, b).expect("ALU-Berechnung fehlgeschlagen!");
 
-//////// Ergebnis serialisiert abspeichern
+    // Ergebnis serialisiert abspeichern
     let serialized_result = bincode::serialize(&result)?;
     let mut file = File::create("C:\\Users\\tridd\\IdeaProjects\\tfhe_rust\\src\\calculated_result.bin").expect("Datei erstellen fehlgeschlagen!");
     file.write_all(serialized_result.as_slice()).expect("Result konnte nicht geschrieben werden!");

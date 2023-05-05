@@ -1,8 +1,7 @@
-mod memory_access;
-mod alu;
-mod server;
-mod client;
-mod verify;
+mod clientside;
+mod serverside;
+use crate::clientside::{client, verify};
+use crate::serverside::server;
 
 fn main() {
     client::start().expect("Fehler im Client!");

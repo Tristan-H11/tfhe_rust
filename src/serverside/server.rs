@@ -1,11 +1,13 @@
 use std::error::Error;
-use crate::alu;
+use crate::serverside::alu;
 
 use std::fs::File;
-use tfhe::{ServerKey, set_server_key};
+use tfhe::{FheUint8, ServerKey, set_server_key};
 
 use bincode;
-use std::io::{Read, Write};
+use std::io::{Cursor, Read, Write};
+use tfhe::prelude::FheTryTrivialEncrypt;
+use crate::serverside::alu::Alu;
 
 ///
 /// Hier werden die Berechnungen auf den verschlüsselten Daten getätigt.
@@ -28,8 +30,37 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         .expect("Konnte datei nicht öffnen!");
     file.read_to_end(&mut data).expect("konnte datei nicht auslesen");
 
+
+    let mut serialized_data = Cursor::new(data);
+
+//////// ALU konstruieren
+    let opcode_add: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
+    let opcode_and: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
+    let opcode_or: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
+    let opcode_xor: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
+
+    let alu = Alu {
+        opcode_add,
+        opcode_and,
+        opcode_or,
+        opcode_xor
+    };
+
+//////// Memory-Access konstruieren
+    let ram_read: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
+    let ram_write: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
+
+    //TODO: Memory bauen und einbinden
+
+
+
+    let op_code: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
+    let a: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
+    let b: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
+
+
 //////// Ergebnis berechnen
-    let result = alu::start(&data).expect("ALU-Berechnung fehlgeschlagen!");
+    let result = alu.calculate(op_code, a, b).expect("ALU-Berechnung fehlgeschlagen!");
 
 //////// Ergebnis serialisiert abspeichern
     let serialized_result = bincode::serialize(&result)?;

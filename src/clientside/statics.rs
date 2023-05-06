@@ -9,7 +9,8 @@ pub static ALU_XOR: u8 = 0b0000_0011;
 pub static RAM_READ: u8  = 0b0000_0100;
 pub static RAM_WRITE: u8 = 0b0000_0101;
 
-
+//TODO Die Befehle aus Architektur.md hier umsetzen. Relevant sind nur die unteren 6 bit.
+// Gespeichert werden müssen die trotzdem als 16 bit
 //----- Konfiguration des Nutzerprogramms
 // Setzen des gewünschten Befehls
 pub static OP_CODE: u8 = 0b0000_0011; //XOR

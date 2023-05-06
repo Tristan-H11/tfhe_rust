@@ -4,6 +4,7 @@ use std::io::{Cursor, Read, Write};
 
 use bincode;
 use tfhe::{FheUint8, ServerKey, set_server_key};
+use tfhe::prelude::FheTryTrivialEncrypt;
 
 use crate::serverside::alu::Alu;
 
@@ -41,11 +42,16 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let opcode_or: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
     let opcode_xor: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
 
-    let alu = Alu {
+    let zero_flag_initializer: FheUint8 = FheUint8::try_encrypt_trivial(0u8).unwrap();
+    
+    let mut alu = Alu {
         opcode_add,
         opcode_and,
         opcode_or,
         opcode_xor,
+        zero_flag: zero_flag_initializer.clone(),
+        overflow_flag: zero_flag_initializer.clone(),
+        carry_flag: zero_flag_initializer.clone(),
     };
 
     // Memory-Access konstruieren
@@ -53,6 +59,10 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let ram_write: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
 
     //TODO: Memory bauen und einbinden
+    /*
+    let deserialized_values: Vec<myType> = bincode::deserialize(&file_content)?;
+    liest die gesamte Datei (oder den Rest ein) und teilt es in den Array auf
+     */
 
     // Ergebnis berechnen
     let op_code: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;

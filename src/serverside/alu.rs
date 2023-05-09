@@ -58,6 +58,7 @@ impl Alu {
 
     // TODO
     //  Die beiden Funktionen hier drunter sind noch ungeprüft und ich bin nicht ganz sicher, ob die korrekt sind!!!!
+    //  Und es ist noch unklar, wann welche Flags gesetzt werden sollen.
 
     /// Wenn die beiden MSB's ver-xort werden und dieses Ergebnis ungleich dem Ergebnis MSB ist,
     /// dann gab es einen Carry an vorletzter Stelle, also einen Overflow. <br>

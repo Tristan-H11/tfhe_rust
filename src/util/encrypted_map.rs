@@ -16,6 +16,7 @@ impl EncryptedMap {
                 FheUint8::try_encrypt_trivial(0 as u8).unwrap(),
             )));
         }
+        println!("EncryptedMap::new() aufgerufen");
         EncryptedMap {
             data: map,
         }
@@ -44,6 +45,7 @@ impl EncryptedMap {
                 }
             }
         }
+        println!("EncryptedMap::insert() aufgerufen");
     }
 
     /// Liest einen Wert aus der Map, in dem jede Zeile einmal gelesen wird.
@@ -60,6 +62,7 @@ impl EncryptedMap {
                 _ => continue,
             }
         }
+        println!("EncryptedMap::find_value() aufgerufen");
         Some(result)
     }
 }

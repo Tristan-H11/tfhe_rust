@@ -11,6 +11,7 @@ impl Memory {
     /// Initialisiert alle 256 Adressen des RAMs mit `0` und gibt den initialiserten RAM zurück.
     pub fn new() -> Self {
         let memory: EncryptedMap = EncryptedMap::new();
+        println!("Memory::new() aufgerufen");
         Memory {
             memory
         }

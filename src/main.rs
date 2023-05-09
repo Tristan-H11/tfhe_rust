@@ -10,8 +10,17 @@ mod util;
 /// Client- oder Server-Programme werden.
 fn main() {
     client::start().expect("Fehler im Client!");
+    println!("-------");
+    println!("Client Ausführung beendet!");
+    println!("-------");
     server::start().expect("Fehler im Server!");
+    println!("-------");
+    println!("Server Ausführung beendet!");
+    println!("-------");
     verify::start().expect("Fehler im Verify!");
+    println!("-------");
+    println!("Verify Ausführung beendet!");
+    println!("-------");
 }
 
 /*

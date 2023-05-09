@@ -53,6 +53,7 @@ impl Alu {
         self.set_overflow(a.clone(), b.clone(), result.clone());
         self.set_carry(a.clone(), b.clone());
 
+        println!("Alu Berechnung abgeschlossen.");
         Ok(result)
     }
 

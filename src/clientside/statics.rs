@@ -11,6 +11,9 @@ pub static REG2_ADR: u8 = 1;
 pub static REG3_ADR: u8 = 2;
 pub static REG4_ADR: u8 = 3;
 
+// Damit der PC und die Flags etc im Server nicht trivial verschlüsselt werden muss
+pub static ZERO_INITIALIZER: u8 = 0;
+
 //TODO Die Befehle aus Architektur.md hier umsetzen. Relevant sind nur die unteren 6 bit.
 // Gespeichert werden müssen die trotzdem als 16 bit
 //----- Konfiguration des Nutzerprogramms

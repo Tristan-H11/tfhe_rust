@@ -11,7 +11,7 @@ impl MemoryUint8 {
     pub fn new(capacity: usize) -> MemoryUint8 {
         println!("RAM erstellen gestartet.");
         let mut data: Vec<FheUint8> = Vec::with_capacity(capacity);
-        for i in 0..capacity {
+        for _ in 0..capacity {
             data.push(
                 FheUint8::try_encrypt_trivial(0 as u8).unwrap(),
             );

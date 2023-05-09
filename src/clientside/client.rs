@@ -38,28 +38,29 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
 
     // Daten speichern
-    let data: Vec<u8> = vec![
+    let configuration_data: Vec<u8> = vec![
         ALU_ADD,
         ALU_AND,
         ALU_OR,
         ALU_XOR,
+        ZERO_INITIALIZER,
         OP_CODE,
         OP_A,
         OP_B,
     ];
 
     // Alle Werte im Vector verschlüsseln
-    let encrypted_data: Vec<FheUint8> = data.iter()
+    let encrypted_configuration_data: Vec<FheUint8> = configuration_data.iter()
         .map(|&x: &u8| FheUint8::encrypt(x, &client_key))
         .collect();
 
-    let mut serialized_data = Vec::new();
-    for encrypted_value in encrypted_data {
-        bincode::serialize_into(&mut serialized_data, &encrypted_value)?;
+    let mut serialized_configuration_data = Vec::new();
+    for encrypted_value in encrypted_configuration_data {
+        bincode::serialize_into(&mut serialized_configuration_data, &encrypted_value)?;
     }
 
-    let mut file = File::create("data.bin")?;
-    file.write_all(serialized_data.as_slice())?;
+    let mut file = File::create("config_data.bin")?;
+    file.write_all(serialized_configuration_data.as_slice())?;
 
     Ok(())
 }

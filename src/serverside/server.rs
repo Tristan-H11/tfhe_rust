@@ -31,35 +31,35 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     println!("ServerKey eingelesen und gesetzt.");
 
     // Daten einlesen
-    let mut data = Vec::new();
-    let mut file = File::open("data.bin")?;
-    file.read_to_end(&mut data)?;
+    let mut configuration_data = Vec::new();
+    let mut file = File::open("config_data.bin")?;
+    file.read_to_end(&mut configuration_data)?;
 
-    let mut serialized_data = Cursor::new(data);
+    let mut serialized_configuration_data = Cursor::new(configuration_data);
 
     // ALU konstruieren
-    let opcode_add: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
-    let opcode_and: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
-    let opcode_or: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
-    let opcode_xor: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
+    let opcode_add: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let opcode_and: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let opcode_or: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let opcode_xor: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
     println!("Daten eingelesen.");
 
-    let zero_flag_initializer: FheUint8 = FheUint8::try_encrypt_trivial(0u8).unwrap();
+    let encrypted_zero: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
 
     let mut alu = Alu {
         opcode_add,
         opcode_and,
         opcode_or,
         opcode_xor,
-        zero_flag: zero_flag_initializer.clone(),
-        overflow_flag: zero_flag_initializer.clone(),
-        carry_flag: zero_flag_initializer.clone(),
+        zero_flag: encrypted_zero.clone(),
+        overflow_flag: encrypted_zero.clone(),
+        carry_flag: encrypted_zero.clone(),
     };
 
 
-    let op_code: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
-    let a: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
-    let b: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
+    let op_code: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let a: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let b: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
     println!("Alu erstellt.");
 
     // Der Datenspeicher ist vorerst nur 8 Zeilen groß

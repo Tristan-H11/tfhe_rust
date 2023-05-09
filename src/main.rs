@@ -3,7 +3,6 @@ use crate::serverside::server;
 
 mod clientside;
 mod serverside;
-mod util;
 
 /// Einstiegspunkt für die Entwicklung.
 /// Später müssen die drei `start()` Funktionen die Main-Funktionen der entsprechenden

@@ -47,14 +47,16 @@ Arithmetik-Befehle haben in ihrem 6. und 5. Bit eine `00`.
 
 Transport-Befehle haben in ihrem 6. und 5. Bit eine `01`.
 
-| Befehl         | Instruction            | Legende                | Beschreibung                                   |
-|----------------|------------------------|------------------------|------------------------------------------------|
-| MOV RAM-Reg    | `XXXX_XXXX_RR_01_0000` | X = RAM, R = Reg       | Verschiebt einen Wert vom RAM in das Register. |
-| MOVR Reg-RAM   | `XXXX_XXXX_RR_01_0001` | X = RAM, R = Reg       | Verschiebt einen Wert vom Register in den RAM. |
-|                |                        |                        |                                                |
-| LOAD Const-Reg | `CCCC_CCCC_RR_01_0010` | C = Konstante, R = Reg | Lädt einen Konstanten-Wert in das Register.    |
-|                |                        |                        |                                                |
-| SWAP Reg-Reg   | `0000_00AA_BB_01_0011` | A = Reg1, B = Reg2     | Tauscht die Werte von Reg1 und Reg2.           |
+| Befehl         | Instruction            | Legende                | Beschreibung                                                      |
+|----------------|------------------------|------------------------|-------------------------------------------------------------------|
+| MOV RAM-Reg    | `XXXX_XXXX_RR_01_0000` | X = RAM, R = Reg       | Verschiebt einen Wert vom RAM in das Register.                    |
+| MOVR Reg-RAM   | `XXXX_XXXX_RR_01_0001` | X = RAM, R = Reg       | Verschiebt einen Wert vom Register in den RAM.                    |
+|                |                        |                        |                                                                   |
+| LOAD Const-Reg | `CCCC_CCCC_RR_01_0010` | C = Konstante, R = Reg | Lädt einen Konstanten-Wert in das Register.                       |
+|                |                        |                        |                                                                   |
+| SWAP Reg-Reg   | `0000_00AA_BB_01_0011` | A = Reg1, B = Reg2     | Tauscht die Werte von Reg1 und Reg2.                              |
+|                |                        |                        |                                                                   |
+| OUT RAM        | `XXXX_XXXX_00_01_0100` | X = RAM                | Schreibt einen Wert aus den RAM in die zu serialisierenden Daten. |
 
 ### Programmfluss-Befehle
 

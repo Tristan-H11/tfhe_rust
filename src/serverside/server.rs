@@ -7,7 +7,7 @@ use tfhe::{FheUint8, ServerKey, set_server_key};
 use tfhe::prelude::FheTryTrivialEncrypt;
 
 use crate::serverside::alu::Alu;
-use crate::serverside::memory::Memory;
+use crate::serverside::memory_uint8::MemoryUint8;
 
 /// Server-Main-Funktion.
 /// Hier werden:
@@ -62,17 +62,17 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let b: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
     println!("Alu erstellt.");
 
-    // TODO: Memory bauen und einbinden
-    // let mut memory = Memory::new();
-    // memory.write_to_ram(
-    //     FheUint8::try_encrypt_trivial(0 as u8).unwrap(),
-    //     a.clone(),
-    // );
-    // memory.write_to_ram(
-    //     FheUint8::try_encrypt_trivial(1 as u8).unwrap(),
-    //     b.clone(),
-    // );
-    // println!("Operanden in den RAM geschrieben.");
+    // Der Datenspeicher ist vorerst nur 8 Zeilen groß
+    let mut memory = MemoryUint8::new(8);
+    memory.write_to_ram(
+        FheUint8::try_encrypt_trivial(0 as u8).unwrap(),
+        a.clone(),
+    );
+    memory.write_to_ram(
+        FheUint8::try_encrypt_trivial(1 as u8).unwrap(),
+        b.clone(),
+    );
+    println!("Operanden in den RAM geschrieben.");
 
     /*
     let deserialized_values: Vec<myType> = bincode::deserialize(&file_content)?;
@@ -81,21 +81,21 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
     // Ergebnis berechnen
     let result = alu.calculate(
-        op_code, a, b
-        // memory.read_from_ram(FheUint8::try_encrypt_trivial(0 as u8).unwrap()),
-        // memory.read_from_ram(FheUint8::try_encrypt_trivial(1 as u8).unwrap()),
+        op_code,
+        memory.read_from_ram(FheUint8::try_encrypt_trivial(0 as u8).unwrap()),
+        memory.read_from_ram(FheUint8::try_encrypt_trivial(1 as u8).unwrap()),
     )?;
 
 
-    // memory.write_to_ram(
-    //     FheUint8::try_encrypt_trivial(2 as u8).unwrap(),
-    //     result.clone(),
-    // );
+    memory.write_to_ram(
+        FheUint8::try_encrypt_trivial(2 as u8).unwrap(),
+        result.clone(),
+    );
     println!("Alu Ergebnis in den RAM geschrieben.");
 
     // Ergebnis serialisiert abspeichern
-    let serialized_result = bincode::serialize( &result
-        // &memory.read_from_ram(FheUint8::try_encrypt_trivial(2 as u8).unwrap())
+    let serialized_result = bincode::serialize(
+        &memory.read_from_ram(FheUint8::try_encrypt_trivial(2 as u8).unwrap())
     )?;
     let mut file = File::create("C:/data/calculated_result.bin")?;
     file.write_all(serialized_result.as_slice())?;

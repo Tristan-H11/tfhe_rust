@@ -43,8 +43,6 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         ALU_AND,
         ALU_OR,
         ALU_XOR,
-        RAM_READ,
-        RAM_WRITE,
         OP_CODE,
         OP_A,
         OP_B,

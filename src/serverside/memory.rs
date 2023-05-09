@@ -10,7 +10,7 @@ pub struct Memory {
 impl Memory {
     /// Initialisiert alle 256 Adressen des RAMs mit `0` und gibt den initialiserten RAM zurück.
     pub fn new() -> Self {
-        let mut memory: EncryptedMap = EncryptedMap::new();
+        let memory: EncryptedMap = EncryptedMap::new();
         Memory {
             memory
         }

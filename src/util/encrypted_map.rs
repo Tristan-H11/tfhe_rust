@@ -42,7 +42,6 @@ impl EncryptedMap {
                     ));
                     break;
                 }
-                _ => continue,
             }
         }
     }

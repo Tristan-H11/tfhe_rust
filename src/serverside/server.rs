@@ -55,9 +55,6 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         carry_flag: zero_flag_initializer.clone(),
     };
 
-    // Memory-Access konstruieren
-    let ram_read: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
-    let ram_write: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;
 
 
     let op_code: FheUint8 = bincode::deserialize_from(&mut serialized_data)?;

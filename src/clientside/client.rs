@@ -25,7 +25,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let mut serialized_server_key = Vec::new();
     bincode::serialize_into(&mut serialized_server_key, &server_key)?;
 
-    let mut file = File::create("C:/data/server_key.bin")?;
+    let mut file = File::create("server_key.bin")?;
     file.write_all(serialized_server_key.as_slice())?;
 
 
@@ -33,7 +33,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let mut serialized_private_key = Vec::new();
     bincode::serialize_into(&mut serialized_private_key, &client_key)?;
 
-    let mut file = File::create("C:/data/private_key.bin")?;
+    let mut file = File::create("private_key.bin")?;
     file.write_all(serialized_private_key.as_slice())?;
 
 
@@ -58,7 +58,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         bincode::serialize_into(&mut serialized_data, &encrypted_value)?;
     }
 
-    let mut file = File::create("C:/data/data.bin")?;
+    let mut file = File::create("data.bin")?;
     file.write_all(serialized_data.as_slice())?;
 
     Ok(())

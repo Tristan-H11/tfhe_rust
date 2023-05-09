@@ -23,7 +23,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
     // Server Key einlesen
     let mut serialized_server_key = Vec::new();
-    let mut file = File::open("C:/data/server_key.bin")?;
+    let mut file = File::open("server_key.bin")?;
     file.read_to_end(&mut serialized_server_key)?;
     let server_key: ServerKey = bincode::deserialize(&serialized_server_key)?;
 
@@ -32,7 +32,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
     // Daten einlesen
     let mut data = Vec::new();
-    let mut file = File::open("C:/data/data.bin")?;
+    let mut file = File::open("data.bin")?;
     file.read_to_end(&mut data)?;
 
     let mut serialized_data = Cursor::new(data);
@@ -97,7 +97,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let serialized_result = bincode::serialize(
         &memory.read_from_ram(FheUint8::try_encrypt_trivial(2 as u8).unwrap())
     )?;
-    let mut file = File::create("C:/data/calculated_result.bin")?;
+    let mut file = File::create("calculated_result.bin")?;
     file.write_all(serialized_result.as_slice())?;
     println!("Ergebnis serialisiert.");
     Ok(())

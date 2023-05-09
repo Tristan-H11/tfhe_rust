@@ -11,13 +11,13 @@ use tfhe::prelude::*;
 pub fn start() -> Result<(), Box<dyn Error>> {
     // Ergebnis einlesen und deserialisieren
     let mut calculated_result = Vec::new();
-    let mut file = File::open("C:/data/calculated_result.bin")?;
+    let mut file = File::open("calculated_result.bin")?;
     file.read_to_end(&mut calculated_result)?;
     let deserialized_result: FheUint8 = bincode::deserialize(&calculated_result)?;
 
     // PrivateKey einlesen
     let mut serialized_private_key = Vec::new();
-    let mut file = File::open("C:/data/private_key.bin")?;
+    let mut file = File::open("private_key.bin")?;
     file.read_to_end(&mut serialized_private_key)?;
     let private_key: ClientKey = bincode::deserialize(&serialized_private_key)?;
 

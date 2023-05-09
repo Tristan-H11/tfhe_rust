@@ -15,6 +15,6 @@ pub static REG4_ADR: u8 = 3;
 // Gespeichert werden müssen die trotzdem als 16 bit
 //----- Konfiguration des Nutzerprogramms
 // Setzen des gewünschten Befehls
-pub static OP_CODE: u8 = 0b0000_0011; //XOR
-pub static OP_A: u8 = 0b1100_0011;
-pub static OP_B: u8 = 0b1000_0001;
+pub static OP_CODE: u8 = 0b0000_000; //XOR
+pub static OP_A: u8 = 0b0000_0011;
+pub static OP_B: u8 = 0b0000_0001;

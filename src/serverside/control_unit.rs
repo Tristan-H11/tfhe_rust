@@ -1,13 +1,12 @@
-use tfhe::FheUint8;
+use tfhe::FheUint16;
 use crate::serverside::alu::Alu;
 use crate::serverside::memory_uint16::MemoryUint16;
-use crate::serverside::memory_uint8::MemoryUint8;
 
 pub struct ControlUnit {
     alu: Alu,
-    data_memory: MemoryUint8,
+    data_memory: MemoryUint16,
     program_memory: MemoryUint16,
-    program_counter: FheUint8
+    program_counter: FheUint16
 }
 
 impl ControlUnit {

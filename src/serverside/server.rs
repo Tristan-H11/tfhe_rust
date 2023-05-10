@@ -3,11 +3,11 @@ use std::fs::File;
 use std::io::{Cursor, Read, Write};
 
 use bincode;
-use tfhe::{FheUint8, ServerKey, set_server_key};
+use tfhe::{FheUint16, ServerKey, set_server_key};
 use tfhe::prelude::FheTryTrivialEncrypt;
 
 use crate::serverside::alu::Alu;
-use crate::serverside::memory_uint8::MemoryUint8;
+use crate::serverside::memory_uint16::MemoryUint16;
 
 /// Server-Main-Funktion.
 /// Hier werden:
@@ -38,13 +38,13 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let mut serialized_configuration_data = Cursor::new(configuration_data);
 
     // ALU konstruieren
-    let opcode_add: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let opcode_and: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let opcode_or: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let opcode_xor: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let opcode_add: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let opcode_and: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let opcode_or: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let opcode_xor: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
     println!("Daten eingelesen.");
 
-    let encrypted_zero: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let encrypted_zero: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
 
 
     // TODO: Neue Config-data auslesen. Die paar auslesungen über dem Todo hier passen nicht mehr
@@ -65,19 +65,19 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     };
 
 
-    let op_code: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let a: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let b: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let op_code: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let a: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let b: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
     println!("Alu erstellt.");
 
     // Der Datenspeicher ist vorerst nur 8 Zeilen groß
-    let mut memory = MemoryUint8::new(8);
+    let mut memory = MemoryUint16::new(8);
     memory.write_to_ram(
-        FheUint8::try_encrypt_trivial(0 as u8).unwrap(),
+        FheUint16::try_encrypt_trivial(0 as u16).unwrap(),
         a.clone(),
     );
     memory.write_to_ram(
-        FheUint8::try_encrypt_trivial(1 as u8).unwrap(),
+        FheUint16::try_encrypt_trivial(1 as u16).unwrap(),
         b.clone(),
     );
     println!("Operanden in den RAM geschrieben.");
@@ -90,13 +90,13 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     // Ergebnis berechnen
     let result = alu.calculate(
         op_code,
-        memory.read_from_ram(FheUint8::try_encrypt_trivial(0 as u8).unwrap()),
-        memory.read_from_ram(FheUint8::try_encrypt_trivial(1 as u8).unwrap()),
+        memory.read_from_ram(FheUint16::try_encrypt_trivial(0 as u16).unwrap()),
+        memory.read_from_ram(FheUint16::try_encrypt_trivial(1 as u16).unwrap()),
     )?;
 
 
     memory.write_to_ram(
-        FheUint8::try_encrypt_trivial(2 as u8).unwrap(),
+        FheUint16::try_encrypt_trivial(2 as u16).unwrap(),
         result.clone(),
     );
     println!("Alu Ergebnis in den RAM geschrieben.");
@@ -105,7 +105,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     //  Dieser Vektor wird dann hier ausgelesen und zurück serialisiert, nach dem der END-Befehl kam
     // Ergebnis serialisiert abspeichern
     let serialized_result = bincode::serialize(
-        &memory.read_from_ram(FheUint8::try_encrypt_trivial(2 as u8).unwrap())
+        &memory.read_from_ram(FheUint16::try_encrypt_trivial(2 as u16).unwrap())
     )?;
     let mut file = File::create("calculated_result.bin")?;
     file.write_all(serialized_result.as_slice())?;

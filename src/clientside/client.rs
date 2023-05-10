@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::Write;
 
 use bincode;
-use tfhe::{ConfigBuilder, FheUint16, FheUint8, generate_keys};
+use tfhe::{ConfigBuilder, FheUint16, generate_keys};
 use tfhe::prelude::*;
 
 use crate::clientside::statics::*;
@@ -17,7 +17,7 @@ use crate::clientside::statics::*;
 /// - die Operanden und der OpCode für die Alu verschlüsselt und serialisiert. (Das wird sich demnächst ändern, wenn die CU gebaut wird)
 pub fn start() -> Result<(), Box<dyn Error>> {
     let config = ConfigBuilder::all_disabled()
-        .enable_default_uint8()
+        .enable_default_uint16()
         .build();
     let (client_key, server_key) = generate_keys(config);
 
@@ -38,7 +38,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
 
     // Daten speichern
-    let configuration_data: Vec<u8> = vec![
+    let configuration_data: Vec<u16> = vec![
         ALU_ADD_REGRAM,
         ALU_ADD_REGREG,
         ALU_AND_REGRAM,
@@ -74,8 +74,8 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     ];
 
     // Alle Werte im Vector verschlüsseln und serialiseren
-    let encrypted_configuration_data: Vec<FheUint8> = configuration_data.iter()
-        .map(|&x: &u8| FheUint8::encrypt(x, &client_key))
+    let encrypted_configuration_data: Vec<FheUint16> = configuration_data.iter()
+        .map(|&x: &u16| FheUint16::encrypt(x, &client_key))
         .collect();
 
     let mut serialized_configuration_data = Vec::new();
@@ -87,7 +87,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     file.write_all(serialized_configuration_data.as_slice())?;
 
 
-    let encrypted_program_data: Vec<FheUint8> = program_data.iter()
+    let encrypted_program_data: Vec<FheUint16> = program_data.iter()
         .map(|&x: &u16| FheUint16::encrypt(x, &client_key))
         .collect();
 

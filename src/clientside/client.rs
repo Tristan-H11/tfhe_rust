@@ -39,14 +39,30 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
     // Daten speichern
     let configuration_data: Vec<u8> = vec![
-        ALU_ADD,
-        ALU_AND,
-        ALU_OR,
-        ALU_XOR,
-        ZERO_INITIALIZER,
-        OP_CODE,
-        OP_A,
-        OP_B,
+        ALU_ADD_REGRAM,
+        ALU_ADD_REGREG,
+        ALU_AND_REGRAM,
+        ALU_AND_REGREG,
+        ALU_OR_REGRAM,
+        ALU_OR_REGREG,
+        ALU_XOR_REGRAM,
+        ALU_XOR_REGREG,
+        MOV_RAMREG,
+        MOV_REGRAM,
+        LOAD_CONST_REG,
+        SWAP_REGREG,
+        OUT_RAM,
+        JMP,
+        JMPC,
+        JMPO,
+        JMPZ,
+        JMPR,
+        END,
+        REG1_ADR,
+        REG2_ADR,
+        REG3_ADR,
+        REG4_ADR,
+        ZERO_INITIALIZER
     ];
 
     // Alle Werte im Vector verschlüsseln

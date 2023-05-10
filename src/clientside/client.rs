@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::Write;
 
 use bincode;
-use tfhe::{ConfigBuilder, FheUint8, generate_keys};
+use tfhe::{ConfigBuilder, FheUint16, FheUint8, generate_keys};
 use tfhe::prelude::*;
 
 use crate::clientside::statics::*;
@@ -73,7 +73,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         OUT_REG1
     ];
 
-    // Alle Werte im Vector verschlüsseln
+    // Alle Werte im Vector verschlüsseln und serialiseren
     let encrypted_configuration_data: Vec<FheUint8> = configuration_data.iter()
         .map(|&x: &u8| FheUint8::encrypt(x, &client_key))
         .collect();
@@ -85,6 +85,19 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
     let mut file = File::create("config_data.bin")?;
     file.write_all(serialized_configuration_data.as_slice())?;
+
+
+    let encrypted_program_data: Vec<FheUint8> = program_data.iter()
+        .map(|&x: &u16| FheUint16::encrypt(x, &client_key))
+        .collect();
+
+    let mut serialized_program_data = Vec::new();
+    for encrypted_value in encrypted_program_data {
+        bincode::serialize_into(&mut serialized_program_data, &encrypted_value)?;
+    }
+
+    let mut file = File::create("program_data.bin")?;
+    file.write_all(serialized_program_data.as_slice())?;
 
     Ok(())
 }

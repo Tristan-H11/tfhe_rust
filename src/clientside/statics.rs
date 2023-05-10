@@ -39,8 +39,9 @@ pub static REG4_ADR: u8 = 3;
 // Damit der PC und die Flags etc im Server nicht trivial verschlüsselt werden muss
 pub static ZERO_INITIALIZER: u8 = 0;
 
+
 //----- Konfiguration des Nutzerprogramms
-// Setzen des gewünschten Befehls
-pub static OP_CODE: u8 = 0b0000_000; //XOR
-pub static OP_A: u8 = 0b0000_0011;
-pub static OP_B: u8 = 0b0000_0001;
+pub static LOAD_2_TO_REG1: u16 = ((0b0000_0010 << 8) | (REG1_ADR << 6) | LOAD_CONST_REG) as u16;
+pub static LOAD_1_TO_REG2: u16 = ((0b0000_0001 << 8) | (REG2_ADR << 6) | LOAD_CONST_REG) as u16;
+pub static ADD_REG1_REG2: u16 = ((REG1_ADR << 8) | (REG2_ADR << 6) | ALU_ADD_REGREG) as u16;
+pub static OUT_REG1: u16 = ((REG1_ADR << 8) | (OUT_RAM)) as u16;

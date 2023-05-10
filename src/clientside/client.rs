@@ -65,6 +65,14 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         ZERO_INITIALIZER
     ];
 
+    // Die 16 Bit Befehle,die ausgeführt werden sollen
+    let program_data: Vec<u16> = vec![
+        LOAD_2_TO_REG1,
+        LOAD_1_TO_REG2,
+        ADD_REG1_REG2,
+        OUT_REG1
+    ];
+
     // Alle Werte im Vector verschlüsseln
     let encrypted_configuration_data: Vec<FheUint8> = configuration_data.iter()
         .map(|&x: &u8| FheUint8::encrypt(x, &client_key))

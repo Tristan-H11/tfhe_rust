@@ -38,14 +38,32 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let mut serialized_configuration_data = Cursor::new(configuration_data);
 
     // ALU konstruieren
-    let opcode_add: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let opcode_and: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let opcode_or: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let opcode_xor: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let ALU_ADD_REGRAM: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let ALU_ADD_REGREG: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let ALU_AND_REGRAM: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let ALU_AND_REGREG: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let ALU_OR_REGRAM: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let ALU_OR_REGREG: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let ALU_XOR_REGRAM: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let ALU_XOR_REGREG: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let MOV_RAMREG: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let MOV_REGRAM: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let LOAD_CONST_REG: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let SWAP_REGREG: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let OUT_RAM: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let JMP: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let JMPC: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let JMPO: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let JMPZ: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let JMPR: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let END: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let REG1_ADR: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let REG2_ADR: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let REG3_ADR: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let REG4_ADR: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let ZERO_INITIALIZER: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+
     println!("Daten eingelesen.");
-
-    let encrypted_zero: FheUint16 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-
 
     // TODO: Neue Config-data auslesen. Die paar auslesungen über dem Todo hier passen nicht mehr
     //  Dann muss der Programmcode ausgelesen werden. Das ist ein 16 Bit Vector, der gespeichert wird
@@ -59,9 +77,9 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         opcode_and,
         opcode_or,
         opcode_xor,
-        zero_flag: encrypted_zero.clone(),
-        overflow_flag: encrypted_zero.clone(),
-        carry_flag: encrypted_zero.clone(),
+        zero_flag: ZERO_INITIALIZER.clone(),
+        overflow_flag: ZERO_INITIALIZER.clone(),
+        carry_flag: ZERO_INITIALIZER.clone(),
     };
 
 

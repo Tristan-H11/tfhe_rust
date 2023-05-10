@@ -1,3 +1,30 @@
+# TODO
+Auf HAvard Architektur umbauen. Nur ein einziges Register. Der Akkumulator.<br>
+Jeder Befehl hat nur kein oder ein Argument. Nicht zwei.<br>
+Load X => Schreib X in den Accu <br>
+ADD 3 => Addiert 3 auf den Accu rauf <br>
+S 12 => Speichert den Wert aus dem Accu an Adresse 12
+
+Der Speicher muss wie folgt aussehen: <br>
+(5 Bit, 8 Bit)<br>
+(OpCode, Operand)<br>
+<br>
+Ein Speicher und ein Ladebefehl arbeitet nur auf dem Operanden einer Zeile. Dadurch kann man selbstmodifizierenden Code schreiben.
+Wenn in Zeile 12 ein JMP mit Operand X steht und ein `S 12` aufgerufen, dann springt der JMP Befehl dorthin, wo der Wert vom Akku stand, als er reingeschrieben wurde.
+<br><br>
+Befehle:
+Nop (0), Load (1), ADD (2), AND (3), OR (4), XOR (5), Safe (6)
+<br>
+
+## Cycle
+### Fetch
+Wert ziehen und OPCODE und OPERAND speichern
+### Speicherzugriff
+Wenn OPCODE = Speicherbefehl, dann wird OPERAND mit dem Wert aus dem Speicher überschrieben, sonst bleibt es bei OPERAND
+### Execute
+ES gibt Befehle, die in den Accu speichern. (load und alle alu befehle)
+
+
 # CPU-Emulator
 
 Die CPU hat eine 8 Bit Daten-Architektur und akzeptiert die Maschinenbefehle in 16 Bit.

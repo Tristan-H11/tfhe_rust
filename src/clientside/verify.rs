@@ -13,6 +13,9 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let mut calculated_result = Vec::new();
     let mut file = File::open("calculated_result.bin")?;
     file.read_to_end(&mut calculated_result)?;
+
+    // TODO: Das hier muss auf nen ganzen VEktor unbekannter Länge ergänzt werden,
+    //  damit dynamisch viele Ergebnisse zurückgegeben werden können.
     let deserialized_result: FheUint8 = bincode::deserialize(&calculated_result)?;
 
     // PrivateKey einlesen

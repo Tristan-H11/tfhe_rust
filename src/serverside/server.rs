@@ -46,6 +46,14 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
     let encrypted_zero: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
 
+
+    // TODO: Neue Config-data auslesen. Die paar auslesungen über dem Todo hier passen nicht mehr
+    //  Dann muss der Programmcode ausgelesen werden. Das ist ein 16 Bit Vector, der gespeichert wird
+    //  dann wird durch den Vector durchgegangen, ne Maske von 0b11_1111 aufgelegt und der Befehl
+    //  gematched. Der gematchte Befehl führt dann Sachen aus und dann wird der PC erhöht und
+    //  der nächste Befehl aus dem Vector ausgelesen.
+
+
     let mut alu = Alu {
         opcode_add,
         opcode_and,
@@ -93,6 +101,8 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     );
     println!("Alu Ergebnis in den RAM geschrieben.");
 
+    // TODO: Hier muss irgendwie ein Vector existieren, dessen Werte per OUT-Befehl gespeichert wurden
+    //  Dieser Vektor wird dann hier ausgelesen und zurück serialisiert, nach dem der END-Befehl kam
     // Ergebnis serialisiert abspeichern
     let serialized_result = bincode::serialize(
         &memory.read_from_ram(FheUint8::try_encrypt_trivial(2 as u8).unwrap())

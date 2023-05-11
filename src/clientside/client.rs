@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::Write;
 
 use bincode;
-use tfhe::{ConfigBuilder, FheUint16, generate_keys};
+use tfhe::{ConfigBuilder, FheUint8, generate_keys};
 use tfhe::prelude::*;
 
 use crate::clientside::statics::*;
@@ -17,7 +17,7 @@ use crate::clientside::statics::*;
 /// - die Operanden und der OpCode für die Alu verschlüsselt und serialisiert. (Das wird sich demnächst ändern, wenn die CU gebaut wird)
 pub fn start() -> Result<(), Box<dyn Error>> {
     let config = ConfigBuilder::all_disabled()
-        .enable_default_uint16()
+        .enable_default_uint8()
         .build();
     let (client_key, server_key) = generate_keys(config);
 
@@ -38,44 +38,27 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
 
     // Daten speichern
-    let configuration_data: Vec<u16> = vec![
-        ALU_ADD_REGRAM,
-        ALU_ADD_REGREG,
-        ALU_AND_REGRAM,
-        ALU_AND_REGREG,
-        ALU_OR_REGRAM,
-        ALU_OR_REGREG,
-        ALU_XOR_REGRAM,
-        ALU_XOR_REGREG,
-        MOV_RAMREG,
-        MOV_REGRAM,
-        LOAD_CONST_REG,
-        SWAP_REGREG,
-        OUT_RAM,
-        JMP,
-        JMPC,
-        JMPO,
-        JMPZ,
-        JMPR,
-        END,
-        REG1_ADR,
-        REG2_ADR,
-        REG3_ADR,
-        REG4_ADR,
-        ZERO_INITIALIZER
+    let configuration_data: Vec<u8> = vec![
+        ALU_ADD,
+        ALU_OR,
+        ALU_AND,
+        ALU_XOR,
+        LOAD,
+        SAVE,
+        ZERO_INITIALIZER,
+        PC_INIT_VALUE,
     ];
 
     // Die 16 Bit Befehle,die ausgeführt werden sollen
-    let program_data: Vec<u16> = vec![
-        LOAD_2_TO_REG1,
-        LOAD_1_TO_REG2,
-        ADD_REG1_REG2,
-        OUT_REG1
+    let program_data: Vec<(u8, u8)> = vec![
+        (LOAD, 5 as u8),
+        (ALU_ADD, 3 as u8),
+        (SAVE, 12 as u8),
     ];
 
     // Alle Werte im Vector verschlüsseln und serialiseren
-    let encrypted_configuration_data: Vec<FheUint16> = configuration_data.iter()
-        .map(|&x: &u16| FheUint16::encrypt(x, &client_key))
+    let encrypted_configuration_data: Vec<FheUint8> = configuration_data.iter()
+        .map(|&x: &u8| FheUint8::encrypt(x, &client_key))
         .collect();
 
     let mut serialized_configuration_data = Vec::new();
@@ -87,8 +70,13 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     file.write_all(serialized_configuration_data.as_slice())?;
 
 
-    let encrypted_program_data: Vec<FheUint16> = program_data.iter()
-        .map(|&x: &u16| FheUint16::encrypt(x, &client_key))
+    let encrypted_program_data: Vec<FheUint8> = program_data.iter()
+        .map(|&(x, y): &(u8, u8)|
+            (
+                FheUint8::encrypt(x, &client_key),
+                FheUint8::encrypt(y, &client_key)
+            )
+        )
         .collect();
 
     let mut serialized_program_data = Vec::new();

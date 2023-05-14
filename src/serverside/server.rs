@@ -38,27 +38,26 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let mut serialized_configuration_data = Cursor::new(configuration_data);
 
     // ALU konstruieren
-    let ALU_ADD: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let ALU_OR: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let ALU_AND: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let ALU_XOR: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let LOAD: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let SAVE: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let ZERO_INITIALIZER: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let PC_INIT_VALUE: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-
+    let alu_add: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let alu_or: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let alu_and: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let alu_xor: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let load: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let save: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let zero_initializer: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let pc_init_value: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
 
     println!("Daten eingelesen.");
 
 
     let mut alu = Alu {
-        opcode_add: ALU_ADD,
-        opcode_and: ALU_AND,
-        opcode_or: ALU_OR,
-        opcode_xor: ALU_XOR,
-        zero_flag: ZERO_INITIALIZER.clone(),
-        overflow_flag: ZERO_INITIALIZER.clone(),
-        carry_flag: ZERO_INITIALIZER.clone(),
+        opcode_add: alu_add,
+        opcode_and: alu_and,
+        opcode_or: alu_or,
+        opcode_xor: alu_xor,
+        zero_flag: zero_initializer.clone(),
+        overflow_flag: zero_initializer.clone(),
+        carry_flag: zero_initializer.clone(),
     };
 
 
@@ -68,7 +67,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     println!("Alu erstellt.");
 
     // Der Datenspeicher ist vorerst nur 8 Zeilen groß
-    let mut memory = MemoryUint8::new(8, ZERO_INITIALIZER.clone());
+    let mut memory = MemoryUint8::new(8, zero_initializer.clone());
 
     println!("Operanden in den RAM geschrieben.");
 
@@ -82,17 +81,16 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         op_code,
         memory.read_from_ram(FheUint8::try_encrypt_trivial(0 as u8).unwrap()),
         memory.read_from_ram(FheUint8::try_encrypt_trivial(1 as u8).unwrap()),
-    )?;
+    )?; // TODO
 
 
     memory.write_to_ram(
         FheUint8::try_encrypt_trivial(2 as u8).unwrap(),
         result.clone(),
-    );
+    );  // TODO
     println!("Alu Ergebnis in den RAM geschrieben.");
 
-    // TODO: Hier muss irgendwie ein Vector existieren, dessen Werte per OUT-Befehl gespeichert wurden
-    //  Dieser Vektor wird dann hier ausgelesen und zurück serialisiert, nach dem der END-Befehl kam
+    // TODO: Den gesamten RAM zurückgeben und auslesen I guess?
     // Ergebnis serialisiert abspeichern
     let serialized_result = bincode::serialize(
         &memory.read_from_ram(FheUint8::try_encrypt_trivial(2 as u8).unwrap())

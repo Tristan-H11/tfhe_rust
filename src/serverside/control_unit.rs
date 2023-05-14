@@ -11,6 +11,11 @@ pub struct ControlUnit {
 }
 
 impl ControlUnit {
+
+    pub fn new(alu: Alu, data: MemoryUint8, program: MemoryUint8, pc: FheUint8) {
+        // TODO
+    }
+
     pub fn start(&mut self) {
 
 
@@ -29,8 +34,6 @@ impl ControlUnit {
                 a.clone(),
                 is_write_ram
             );
-
-            if true {}
 
         }
     }

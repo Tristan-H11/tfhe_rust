@@ -21,7 +21,3 @@ fn main() {
     println!("Verify Ausführung beendet!");
     println!("-------");
 }
-
-/*
-/// https://docs.zama.ai/tfhe-rs/high-level-api/operations#arithmetic-operations.-1
-*/

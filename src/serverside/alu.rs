@@ -27,7 +27,7 @@ impl Alu {
     ///
     /// Soweit alle OpCodes richtig gesetzt sind und ein zulässiger op_code übergeben wird, wird immer ein Ergebnis berechnet.
     /// Sollten OpCodes falsch gesetzt sein, kann fälschlicherweise `0` berechnet werden.
-    pub fn calculate(&mut self, op_code: FheUint8, a: FheUint8, b: FheUint8) -> Result<FheUint8, Box<dyn Error>> {
+    pub fn calculate(&mut self, op_code: FheUint8, a: FheUint8, b: FheUint8) -> FheUint8 {
         // Addition
         let is_addition: FheUint8 = op_code.eq(&self.opcode_add);
         let addition = (&a + &b + &self.carry_flag) * is_addition;
@@ -54,7 +54,7 @@ impl Alu {
         self.set_carry(a.clone(), b.clone());
 
         println!("Alu Berechnung abgeschlossen.");
-        Ok(result)
+        result
     }
 
     // TODO

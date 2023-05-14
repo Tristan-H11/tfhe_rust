@@ -14,8 +14,3 @@ pub static SAVE: u8     = 0b0000_0011;
 // Damit der PC und die Flags etc im Server nicht trivial verschlüsselt werden muss
 pub static ZERO_INITIALIZER: u8 = 0;
 pub static PC_INIT_VALUE: u8 = 0;
-
-
-//----- Konfiguration des Nutzerprogramms
-pub static LOAD5: u16 = ((LOAD << 8) | 5) as u16;
-

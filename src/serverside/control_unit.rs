@@ -1,33 +1,37 @@
-use tfhe::FheUint16;
+use tfhe::FheUint8;
+use tfhe::prelude::FheTryTrivialEncrypt;
 use crate::serverside::alu::Alu;
-use crate::serverside::memory_uint16::MemoryUint16;
+use crate::serverside::memory_uint8::MemoryUint8;
 
 pub struct ControlUnit {
     alu: Alu,
-    data_memory: MemoryUint16,
-    program_memory: MemoryUint16,
-    program_counter: FheUint16
+    data_memory: MemoryUint8,
+    program_memory: MemoryUint8,
+    program_counter: FheUint8,
 }
 
 impl ControlUnit {
-    pub fn start() {
+    pub fn start(&mut self) {
+
+
         // Loopen
-    }
+        while true {
+            let operand = ();
+            let opcode = ();
+            let accu = ();
 
-    fn fetch() {
-        // Wert per program_counter aus dem program_memory laden
-    }
+            let is_write_accu = ();
+            let is_write_ram = ();
 
-    fn decode() {
-        // Den gefetchten Wert mit 0b0000_0000_0011_1111 verunden, damit man den
-    }
+            let alu_result = self.alu.calculate(&opcode, &operand, &accu);
+            memory.write_to_ram(
+                FheUint8::try_encrypt_trivial(0 as u8).unwrap(),
+                a.clone(),
+                is_write_ram
+            );
 
-    fn execute() {
-        // decodeten Befehl ausführen
-        // gefetchten Wert um 6 shiften und dann Masken für die Parameter auflegen
-    }
+            if true {}
 
-    fn step() {
-        // PC inkrementieren
+        }
     }
 }

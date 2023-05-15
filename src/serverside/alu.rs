@@ -1,4 +1,3 @@
-use std::error::Error;
 use tfhe::FheUint8;
 
 use tfhe::prelude::*;

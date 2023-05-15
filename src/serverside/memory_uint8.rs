@@ -27,8 +27,10 @@ impl MemoryUint8 {
     }
 
     // Schreibt einen neuen Wert in den Akkumulator
-    pub fn write_accu(&mut self, new_value: FheUint8) {
-        self.accu = new_value;
+    pub fn write_accu(&mut self, new_value: FheUint8, is_write_accu: &FheUint8) {
+        let lsb_mask: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
+
+        self.accu = new_value * is_write_accu + &self.accu.clone() * (is_write_accu ^ lsb_mask);
     }
 
     /// Liest einen Wert aus dem RAM, in dem jede Zeile einmal gelesen wird.
@@ -42,7 +44,7 @@ impl MemoryUint8 {
                 FheUint8::try_encrypt_trivial(0 as u8).unwrap()
             );
 
-        for (i, &mut value) in self.data.iter().enumerate() {
+        for (i, value) in self.data.iter().enumerate() {
             let encrypted_index: FheUint8 = FheUint8::try_encrypt_trivial(i as u8).unwrap();
 
             // OpCode auslesen
@@ -55,18 +57,18 @@ impl MemoryUint8 {
 
     /// Schreibt einen Wert in den RAM und liest sowie schreibt dabei jede Zeile des RAMs einmal, damit
     /// kein Rückschluss auf die veränderte Zeile gezogen werden kann.
-    pub fn write_to_ram(&mut self, address: FheUint8, value: FheUint8, is_write: FheUint8) {
+    pub fn write_to_ram(&mut self, address: FheUint8, value: FheUint8, is_write: &FheUint8) {
         println!("Schreiben des RAMs gestartet");
         let lsb_mask: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
 
-        for (i, &mut field) in self.data.iter_mut().enumerate() {
+        for (i, mut field) in self.data.iter_mut().enumerate() {
             let encrypted_index: FheUint8 = FheUint8::try_encrypt_trivial(i as u8).unwrap();
 
             let condition: FheUint8 = address.eq(&encrypted_index);
             let not_condition: FheUint8 = &condition ^ &lsb_mask;
 
             // m_x = (indexEqual AND newValue AND isWrite) OR (!indexEqual AND m_x)
-            *field.1 = (condition * value.clone() * &is_write) + (not_condition * field.clone());
+            field.1 = (condition * value.clone() * is_write) + (not_condition * field.1.clone());
         }
     }
 }

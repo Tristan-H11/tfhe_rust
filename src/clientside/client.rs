@@ -70,7 +70,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     file.write_all(serialized_configuration_data.as_slice())?;
 
 
-    let encrypted_program_data: Vec<FheUint8> = program_data.iter()
+    let encrypted_program_data: Vec<(FheUint8, FheUint8)> = program_data.iter()
         .map(|&(x, y): &(u8, u8)|
             (
                 FheUint8::encrypt(x, &client_key),

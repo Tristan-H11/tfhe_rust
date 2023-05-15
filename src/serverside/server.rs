@@ -1,13 +1,11 @@
 use std::error::Error;
 use std::fs::File;
-use std::io::{Cursor, Read, Write};
+use std::io::{Cursor, Read};
 
 use bincode;
 use tfhe::{FheUint8, ServerKey, set_server_key};
-use tfhe::prelude::FheTryTrivialEncrypt;
 
-use crate::serverside::alu::Alu;
-use crate::serverside::memory_uint8::MemoryUint8;
+use crate::serverside::control_unit;
 
 /// Server-Main-Funktion.
 /// Hier werden:
@@ -46,57 +44,38 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let save: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
     let zero_initializer: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
     let pc_init_value: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    println!("Config eingelesen");
 
-    println!("Daten eingelesen.");
+    // Daten einlesen
+    let mut deserialized_program = Vec::new();
+    let mut file = File::open("program_data.bin")?;
+    file.read_to_end(&mut deserialized_program)?;
 
+    let program_data: Vec<(FheUint8, FheUint8)> = bincode::deserialize(&deserialized_program)?;
+    println!("Programm eingelesen.");
 
-    let mut alu = Alu {
-        opcode_add: alu_add,
-        opcode_and: alu_and,
-        opcode_or: alu_or,
-        opcode_xor: alu_xor,
-        zero_flag: zero_initializer.clone(),
-        overflow_flag: zero_initializer.clone(),
-        carry_flag: zero_initializer.clone(),
-    };
+    let mut control_unit = ControlUnit::new(
+        alu_add,
+        alu_or,
+        alu_and,
+        alu_xor,
+        load,
+        save,
+        zero_initializer,
+        pc_init_value,
+        program_data
+    );
+    println!("CU erstellt.");
 
-
-    let op_code: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let a: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let b: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    println!("Alu erstellt.");
-
-    // Der Datenspeicher ist vorerst nur 8 Zeilen groß
-    let mut memory = MemoryUint8::new(8, zero_initializer.clone());
-
-    println!("Operanden in den RAM geschrieben.");
-
-    /*
-    let deserialized_values: Vec<myType> = bincode::deserialize(&file_content)?;
-    liest die gesamte Datei (oder den Rest ein) und teilt es in den Array auf
-     */
-
-    // Ergebnis berechnen
-    let result = alu.calculate(
-        op_code,
-        memory.read_from_ram(FheUint8::try_encrypt_trivial(0 as u8).unwrap()),
-        memory.read_from_ram(FheUint8::try_encrypt_trivial(1 as u8).unwrap()),
-    )?; // TODO
-
-
-    memory.write_to_ram(
-        FheUint8::try_encrypt_trivial(2 as u8).unwrap(),
-        result.clone(),
-    );  // TODO
-    println!("Alu Ergebnis in den RAM geschrieben.");
+    control_unit.start(10);
 
     // TODO: Den gesamten RAM zurückgeben und auslesen I guess?
     // Ergebnis serialisiert abspeichern
-    let serialized_result = bincode::serialize(
-        &memory.read_from_ram(FheUint8::try_encrypt_trivial(2 as u8).unwrap())
-    )?;
-    let mut file = File::create("calculated_result.bin")?;
-    file.write_all(serialized_result.as_slice())?;
+    // let serialized_result = bincode::serialize(
+    //     FheUint8::try_encrypt_trivial(2 as u8).unwrap()
+    // )?;
+    // let mut file = File::create("calculated_result.bin")?;
+    // file.write_all(serialized_result.as_slice())?;
     println!("Ergebnis serialisiert.");
     Ok(())
 }

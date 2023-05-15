@@ -16,8 +16,8 @@ fn main() {
     println!("-------");
     println!("Server Ausführung beendet!");
     println!("-------");
-    verify::start().expect("Fehler im Verify!");
-    println!("-------");
-    println!("Verify Ausführung beendet!");
-    println!("-------");
+    // verify::start().expect("Fehler im Verify!");
+    // println!("-------");
+    // println!("Verify Ausführung beendet!");
+    // println!("-------");
 }

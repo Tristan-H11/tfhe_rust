@@ -6,29 +6,35 @@ use tfhe::prelude::*;
 /// Das erste Tupel enthält den Befehl, das zweite den Opernanden.
 pub struct MemoryUint8 {
     data: Vec<(FheUint8, FheUint8)>,
+    accu: FheUint8,
 }
 
 impl MemoryUint8 {
-    pub fn new(capacity: usize, zero_initializer: FheUint8) -> MemoryUint8 {
+    /// Erstellt den RAM und Accu mit den übergebenen Daten. Der Vektor darf maximal 8 bit Adressbreite haben und muss
+    /// jede unbeschriebene Zelle mit 8 gefüllt haben. (Also exakt 256 Elemente lang sein)
+    pub fn new(zero_initializer: FheUint8, data: Vec<(FheUint8, FheUint8)>) -> MemoryUint8 {
         println!("RAM erstellen gestartet.");
-        let mut data: Vec<(FheUint8, FheUint8)> = Vec::with_capacity(capacity);
-        for i in 0..capacity {
-            data.push(
-                (
-                    zero_initializer.clone(),
-                    zero_initializer.clone()
-                )
-            );
-        }
+        assert_eq!(data.len(), 256);
         MemoryUint8 {
-            data
+            data,
+            accu: zero_initializer.clone(),
         }
+    }
+
+    /// Liefert den Wert des Akkumulators zurück.
+    pub fn get_accu(&self) -> &FheUint8 {
+        &self.accu
+    }
+
+    // Schreibt einen neuen Wert in den Akkumulator
+    pub fn write_accu(&mut self, new_value: FheUint8) {
+        self.accu = new_value;
     }
 
     /// Liest einen Wert aus dem RAM, in dem jede Zeile einmal gelesen wird.
     /// Der "unsichtbare" Zugriff ist durch die arithmetische Logik anstelle von
     /// Verzweigungen gelöst.
-    pub fn read_from_ram(&self, address: FheUint8) -> (FheUint8, FheUint8) {
+    pub fn read_from_ram(&self, address: &FheUint8) -> (FheUint8, FheUint8) {
         println!("Lesen des RAMs gestartet");
         let mut result: (FheUint8, FheUint8) =
             (

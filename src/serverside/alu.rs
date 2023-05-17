@@ -52,10 +52,10 @@ impl Alu {
         // Zero-Flag
         self.zero_flag = result.eq(&FheUint8::try_encrypt_trivial(0u8).unwrap());
         let new_overflow_flag: FheUint8 = self.calculate_overflow(a.clone(), b.clone(), result.clone());
-        self.overflow_flag = new_overflow_flag * &is_alu_command + &self.overflow_flag * (&one - &is_alu_command);
+        self.overflow_flag = new_overflow_flag * is_alu_command + &self.overflow_flag * (&one - is_alu_command);
 
         let new_carry_flag: FheUint8 = self.calculate_carry(a.clone(), b.clone());
-        self.carry_flag = new_carry_flag * &is_alu_command + &self.carry_flag * (&one - &is_alu_command);
+        self.carry_flag = new_carry_flag * is_alu_command + &self.carry_flag * (&one - is_alu_command);
 
         println!("[ALU] Berechnung und Flags abgeschlossen.");
         result

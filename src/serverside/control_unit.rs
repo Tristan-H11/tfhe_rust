@@ -32,8 +32,8 @@ impl ControlUnit {
     ) -> ControlUnit {
         let alu = Alu {
             opcode_add: op_alu_add.clone(),
-            opcode_and: op_alu_or.clone(),
-            opcode_or: op_alu_and.clone(),
+            opcode_and: op_alu_and.clone(),
+            opcode_or: op_alu_or.clone(),
             opcode_xor: op_alu_xor.clone(),
             zero_flag: zero_initializer.clone(),
             overflow_flag: zero_initializer.clone(),

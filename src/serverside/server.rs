@@ -1,11 +1,13 @@
 use std::error::Error;
 use std::fs::File;
-use std::io::{Cursor, Read};
+use std::io::{Cursor, Read, Write};
 
 use bincode;
 use tfhe::{FheUint8, ServerKey, set_server_key};
 
 use crate::serverside::control_unit::ControlUnit;
+
+pub static RAM_SIZE: usize = 4;
 
 /// Server-Main-Funktion.
 /// Hier werden:
@@ -55,7 +57,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     println!("Programm eingelesen.");
 
     // Ram mit nullen auffüllen, bevor er übergeben wird.
-    while program_data.len() < 256 {
+    while program_data.len() < RAM_SIZE {
         program_data.push(
             (
                 zero_initializer.clone(),
@@ -74,18 +76,15 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         zero_initializer,
         pc_init_value,
         program_data,
+        RAM_SIZE
     );
     println!("CU erstellt.");
 
-    control_unit.start(10);
+    control_unit.start(4);
 
-    // TODO: Den gesamten RAM zurückgeben und auslesen I guess?
-    // Ergebnis serialisiert abspeichern
-    // let serialized_result = bincode::serialize(
-    //     FheUint8::try_encrypt_trivial(2 as u8).unwrap()
-    // )?;
-    // let mut file = File::create("calculated_result.bin")?;
-    // file.write_all(serialized_result.as_slice())?;
+    let serialized_result = bincode::serialize(&control_unit.get_ram())?;
+    let mut file = File::create("calculated_result.bin")?;
+    file.write_all(serialized_result.as_slice())?;
     println!("Ergebnis serialisiert.");
     Ok(())
 }

@@ -12,13 +12,17 @@ pub struct MemoryUint8 {
 impl MemoryUint8 {
     /// Erstellt den RAM und Accu mit den übergebenen Daten. Der Vektor darf maximal 8 bit Adressbreite haben und muss
     /// jede unbeschriebene Zelle mit 8 gefüllt haben. (Also exakt 256 Elemente lang sein)
-    pub fn new(zero_initializer: FheUint8, data: Vec<(FheUint8, FheUint8)>) -> MemoryUint8 {
+    pub fn new(zero_initializer: FheUint8, data: Vec<(FheUint8, FheUint8)>, size: usize) -> MemoryUint8 {
         println!("RAM erstellen gestartet.");
-        assert_eq!(data.len(), 256);
+        assert_eq!(data.len(), size);
         MemoryUint8 {
             data,
             accu: zero_initializer.clone(),
         }
+    }
+
+    pub fn get_data(&self) -> Vec<(FheUint8, FheUint8)> {
+        self.data.clone()
     }
 
     /// Liefert den Wert des Akkumulators zurück.
@@ -64,11 +68,11 @@ impl MemoryUint8 {
         for (i, mut field) in self.data.iter_mut().enumerate() {
             let encrypted_index: FheUint8 = FheUint8::try_encrypt_trivial(i as u8).unwrap();
 
-            let condition: FheUint8 = address.eq(&encrypted_index);
+            let condition: FheUint8 = address.eq(&encrypted_index) * is_write;
             let not_condition: FheUint8 = &condition ^ &lsb_mask;
 
             // m_x = (indexEqual AND newValue AND isWrite) OR (!indexEqual AND m_x)
-            field.1 = (condition * value.clone() * is_write) + (not_condition * field.1.clone());
+            field.1 = (condition * value.clone()) + (not_condition * field.1.clone());
         }
     }
 }

@@ -13,7 +13,7 @@ impl MemoryUint8 {
     /// Erstellt den RAM und Accu mit den übergebenen Daten. Der Vektor darf maximal 8 bit Adressbreite haben und muss
     /// jede unbeschriebene Zelle mit 8 gefüllt haben. (Also exakt 256 Elemente lang sein)
     pub fn new(zero_initializer: FheUint8, data: Vec<(FheUint8, FheUint8)>, size: usize) -> MemoryUint8 {
-        println!("RAM erstellen gestartet.");
+        println!("[RAM] new() gestartet.");
         assert_eq!(data.len(), size);
         MemoryUint8 {
             data,
@@ -22,16 +22,19 @@ impl MemoryUint8 {
     }
 
     pub fn get_data(&self) -> Vec<(FheUint8, FheUint8)> {
+        println!("[RAM] get_data() aufgerufen");
         self.data.clone()
     }
 
     /// Liefert den Wert des Akkumulators zurück.
     pub fn get_accu(&self) -> &FheUint8 {
+        println!("[RAM] get_accu() aufgerufen");
         &self.accu
     }
 
     // Schreibt einen neuen Wert in den Akkumulator
     pub fn write_accu(&mut self, new_value: FheUint8, is_write_accu: &FheUint8) {
+        println!("[RAM] write_accu() aufgerufen");
         let lsb_mask: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
 
         self.accu = new_value * is_write_accu + &self.accu.clone() * (is_write_accu ^ lsb_mask);
@@ -41,7 +44,7 @@ impl MemoryUint8 {
     /// Der "unsichtbare" Zugriff ist durch die arithmetische Logik anstelle von
     /// Verzweigungen gelöst.
     pub fn read_from_ram(&self, address: &FheUint8) -> (FheUint8, FheUint8) {
-        println!("Lesen des RAMs gestartet");
+        println!("[RAM] read_from_ram() aufgerufen");
         let mut result: (FheUint8, FheUint8) =
             (
                 FheUint8::try_encrypt_trivial(0 as u8).unwrap(),
@@ -62,7 +65,7 @@ impl MemoryUint8 {
     /// Schreibt einen Wert in den RAM und liest sowie schreibt dabei jede Zeile des RAMs einmal, damit
     /// kein Rückschluss auf die veränderte Zeile gezogen werden kann.
     pub fn write_to_ram(&mut self, address: &FheUint8, value: FheUint8, is_write: &FheUint8) {
-        println!("Schreiben des RAMs gestartet");
+        println!("[RAM] write_to_ram() aufgerufen");
         let lsb_mask: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
 
         for (i, mut field) in self.data.iter_mut().enumerate() {

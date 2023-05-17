@@ -28,7 +28,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let server_key: ServerKey = bincode::deserialize(&serialized_server_key)?;
 
     set_server_key(server_key);
-    println!("ServerKey eingelesen und gesetzt.");
+    println!("[Server] ServerKey eingelesen und gesetzt.");
 
     // Daten einlesen
     let mut configuration_data = Vec::new();
@@ -46,7 +46,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let save: FheUint8 = serialized_configuration_data[5].clone();
     let zero_initializer: FheUint8 = serialized_configuration_data[6].clone();
     let pc_init_value: FheUint8 = serialized_configuration_data[7].clone();
-    println!("Config eingelesen");
+    println!("[Server] Config eingelesen");
 
     // Daten einlesen
     let mut deserialized_program = Vec::new();
@@ -54,7 +54,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     file.read_to_end(&mut deserialized_program)?;
 
     let mut program_data: Vec<(FheUint8, FheUint8)> = bincode::deserialize(&deserialized_program)?;
-    println!("Programm eingelesen.");
+    println!("[Server] Programm eingelesen.");
 
     // Ram mit nullen auffüllen, bevor er übergeben wird.
     while program_data.len() < RAM_SIZE {
@@ -78,13 +78,13 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         program_data,
         RAM_SIZE
     );
-    println!("CU erstellt.");
+    println!("[Server] CU erstellt.");
 
     control_unit.start(4);
 
     let serialized_result = bincode::serialize(&control_unit.get_ram())?;
     let mut file = File::create("calculated_result.bin")?;
     file.write_all(serialized_result.as_slice())?;
-    println!("Ergebnis serialisiert.");
+    println!("[Server] Ergebnis serialisiert.");
     Ok(())
 }

@@ -1,4 +1,4 @@
-use tfhe::{FheUint16, FheUint8};
+use tfhe::FheUint8;
 use tfhe::prelude::*;
 
 /// Darstellung des RAMs über einen Vector
@@ -57,7 +57,7 @@ impl MemoryUint8 {
 
     /// Schreibt einen Wert in den RAM und liest sowie schreibt dabei jede Zeile des RAMs einmal, damit
     /// kein Rückschluss auf die veränderte Zeile gezogen werden kann.
-    pub fn write_to_ram(&mut self, address: FheUint8, value: FheUint8, is_write: &FheUint8) {
+    pub fn write_to_ram(&mut self, address: &FheUint8, value: FheUint8, is_write: &FheUint8) {
         println!("Schreiben des RAMs gestartet");
         let lsb_mask: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
 

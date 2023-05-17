@@ -7,7 +7,7 @@ use tfhe::{FheUint8, ServerKey, set_server_key};
 
 use crate::serverside::control_unit::ControlUnit;
 
-pub static RAM_SIZE: usize = 4;
+pub static RAM_SIZE: usize = 3;
 
 /// Server-Main-Funktion.
 /// Hier werden:
@@ -80,7 +80,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     );
     println!("[Server] CU erstellt.");
 
-    control_unit.start(4);
+    control_unit.start(3);
 
     let serialized_result = bincode::serialize(&control_unit.get_ram())?;
     let mut file = File::create("calculated_result.bin")?;

@@ -70,7 +70,7 @@ impl MemoryUint8 {
         println!("[RAM] write_to_ram() aufgerufen");
         let one: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
 
-        for (i, mut field) in self.data.iter_mut().enumerate() {
+        for (i, field) in self.data.iter_mut().enumerate() {
             let encrypted_index: FheUint8 = FheUint8::try_encrypt_trivial(i as u8).unwrap();
 
             let condition: FheUint8 = address.eq(&encrypted_index) * is_write;

@@ -29,7 +29,7 @@ impl Alu {
         println!("[ALU] Berechnung gestartet.");
         // Addition
         let is_addition: FheUint8 = op_code.eq(&self.opcode_add);
-        let addition = (&a + &b + &self.carry_flag) * is_addition;
+        let addition = (&a + &b) * is_addition;
         let result = addition;
 
         // AND

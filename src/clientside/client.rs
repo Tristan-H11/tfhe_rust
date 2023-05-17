@@ -51,10 +51,9 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
     // Die 16 Bit Befehle,die ausgeführt werden sollen
     let program_data: Vec<(u8, u8)> = vec![
-        (LOAD, 5 as u8),
-        (ALU_ADD, 3 as u8),
-        (ALU_OR, 1 as u8),
-        (SAVE, 4 as u8),
+        (LOAD, 3 as u8), //1
+        (ALU_AND, 2 as u8), //2
+        (SAVE, 0 as u8),
     ];
 
     // Alle Werte im Vector verschlüsseln und serialiseren

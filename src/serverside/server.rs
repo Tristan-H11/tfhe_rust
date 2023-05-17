@@ -53,6 +53,9 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
     let mut program_data: Vec<(FheUint8, FheUint8)> = bincode::deserialize(&deserialized_program)?;
 
+    // Die RAM_SIZE wird nun abhängig von dem übergebenn Programm bestimmt.
+    // Damit ist sichergestellt, dass die CPU nur so viele Zyklen durchläuft, wie das Programm lang ist.
+    // Ohne Sprünge ist das noch möglich.
     let ram_size: usize = program_data.len();
 
     println!("[Server] Programm eingelesen.");

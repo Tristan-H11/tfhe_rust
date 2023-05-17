@@ -35,15 +35,23 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
     let serialized_configuration_data: Vec<FheUint8> = bincode::deserialize(&configuration_data)?;
 
-    // ALU konstruieren
     let alu_add: FheUint8 = serialized_configuration_data[0].clone();
     let alu_or: FheUint8 = serialized_configuration_data[1].clone();
     let alu_and: FheUint8 = serialized_configuration_data[2].clone();
     let alu_xor: FheUint8 = serialized_configuration_data[3].clone();
-    let load: FheUint8 = serialized_configuration_data[4].clone();
-    let save: FheUint8 = serialized_configuration_data[5].clone();
-    let zero_initializer: FheUint8 = serialized_configuration_data[6].clone();
-    let pc_init_value: FheUint8 = serialized_configuration_data[7].clone();
+    let alu_sub: FheUint8 = serialized_configuration_data[4].clone();
+    let alu_mul: FheUint8 = serialized_configuration_data[5].clone();
+    let alu_add_r: FheUint8 = serialized_configuration_data[6].clone();
+    let alu_or_r: FheUint8 = serialized_configuration_data[7].clone();
+    let alu_and_r: FheUint8 = serialized_configuration_data[8].clone();
+    let alu_xor_r: FheUint8 = serialized_configuration_data[9].clone();
+    let alu_sub_r: FheUint8 = serialized_configuration_data[10].clone();
+    let alu_mul_r: FheUint8 = serialized_configuration_data[11].clone();
+    let load: FheUint8 = serialized_configuration_data[12].clone();
+    let load_r: FheUint8 = serialized_configuration_data[13].clone();
+    let save: FheUint8 = serialized_configuration_data[14].clone();
+    let zero_initializer: FheUint8 = serialized_configuration_data[15].clone();
+    let pc_init_value: FheUint8 = serialized_configuration_data[16].clone();
     println!("[Server] Config eingelesen");
 
     // Daten einlesen
@@ -75,7 +83,16 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         alu_or,
         alu_and,
         alu_xor,
+        alu_sub,
+        alu_mul,
+        alu_add_r,
+        alu_or_r,
+        alu_and_r,
+        alu_xor_r,
+        alu_sub_r,
+        alu_mul_r,
         load,
+        load_r,
         save,
         zero_initializer,
         pc_init_value,

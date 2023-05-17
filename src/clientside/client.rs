@@ -52,6 +52,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         ALU_SUB_R,
         ALU_MUL_R,
         LOAD,
+        LOAD_R,
         SAVE,
         ZERO_INITIALIZER,
         PC_INIT_VALUE,

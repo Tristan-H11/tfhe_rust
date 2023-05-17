@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::Read;
 
 use bincode;
-use tfhe::{ClientKey, FheUint16};
+use tfhe::{ClientKey, FheUint16, FheUint8};
 use tfhe::prelude::*;
 
 /// Verify-Main-Funktion.
@@ -14,9 +14,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let mut file = File::open("calculated_result.bin")?;
     file.read_to_end(&mut calculated_result)?;
 
-    // TODO: Das hier muss auf nen ganzen VEktor unbekannter Länge ergänzt werden,
-    //  damit dynamisch viele Ergebnisse zurückgegeben werden können.
-    let deserialized_result: FheUint16 = bincode::deserialize(&calculated_result)?;
+    let deserialized_result: Vec<(FheUint8, FheUint8)> = bincode::deserialize(&calculated_result)?;
 
     // PrivateKey einlesen
     let mut serialized_private_key = Vec::new();
@@ -24,8 +22,14 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     file.read_to_end(&mut serialized_private_key)?;
     let private_key: ClientKey = bincode::deserialize(&serialized_private_key)?;
 
-    let dec_result: u16 = deserialized_result.decrypt(&private_key);
-    println!("Decrypted Result: {}", dec_result);
-    
+
+    let result_ram: Vec<(u8, u8)> = deserialized_result.iter().map(
+        |(x, y): &(FheUint8, FheUint8)| (x.decrypt(&private_key), y.decrypt(&private_key))
+    ).collect();
+
+    for (i, x) in result_ram.iter().enumerate() {
+        println!("Zeile {}: OpCode {} --- Wert {}", i, x.0, x.1);
+    }
+
     Ok(())
 }

@@ -28,6 +28,7 @@ impl ControlUnit {
         zero_initializer: FheUint8,
         pc_init_value: FheUint8,
         program_data: Vec<(FheUint8, FheUint8)>,
+        ram_size: usize
     ) -> ControlUnit {
         let alu = Alu {
             opcode_add: op_alu_add.clone(),
@@ -42,6 +43,7 @@ impl ControlUnit {
         let memory = MemoryUint8::new(
             zero_initializer.clone(),
             program_data,
+            ram_size
         );
 
         ControlUnit {
@@ -55,6 +57,10 @@ impl ControlUnit {
             op_load,
             op_save,
         }
+    }
+
+    pub fn get_ram(&mut self) -> Vec<(FheUint8, FheUint8)> {
+        self.memory.get_data()
     }
 
     /// Führt die Fetch, Decode, execute, writeback Zyklen für die übergebene Anzahl an Zyklen aus.

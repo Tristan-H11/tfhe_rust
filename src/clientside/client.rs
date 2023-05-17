@@ -62,9 +62,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         .collect();
 
     let mut serialized_configuration_data = Vec::new();
-    for encrypted_value in encrypted_configuration_data {
-        bincode::serialize_into(&mut serialized_configuration_data, &encrypted_value)?;
-    }
+    bincode::serialize_into(&mut serialized_configuration_data, &encrypted_configuration_data)?;
 
     let mut file = File::create("config_data.bin")?;
     file.write_all(serialized_configuration_data.as_slice())?;
@@ -80,9 +78,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         .collect();
 
     let mut serialized_program_data = Vec::new();
-    for encrypted_value in encrypted_program_data {
-        bincode::serialize_into(&mut serialized_program_data, &encrypted_value)?;
-    }
+    bincode::serialize_into(&mut serialized_program_data, &encrypted_program_data)?;
 
     let mut file = File::create("program_data.bin")?;
     file.write_all(serialized_program_data.as_slice())?;

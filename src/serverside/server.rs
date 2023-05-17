@@ -5,7 +5,7 @@ use std::io::{Cursor, Read};
 use bincode;
 use tfhe::{FheUint8, ServerKey, set_server_key};
 
-use crate::serverside::control_unit;
+use crate::serverside::control_unit::ControlUnit;
 
 /// Server-Main-Funktion.
 /// Hier werden:
@@ -33,17 +33,17 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let mut file = File::open("config_data.bin")?;
     file.read_to_end(&mut configuration_data)?;
 
-    let mut serialized_configuration_data = Cursor::new(configuration_data);
+    let mut serialized_configuration_data: Vec<FheUint8> = bincode::deserialize(&configuration_data)?;
 
     // ALU konstruieren
-    let alu_add: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let alu_or: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let alu_and: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let alu_xor: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let load: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let save: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let zero_initializer: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
-    let pc_init_value: FheUint8 = bincode::deserialize_from(&mut serialized_configuration_data)?;
+    let alu_add: FheUint8 = serialized_configuration_data[0].clone();
+    let alu_or: FheUint8 = serialized_configuration_data[1].clone();
+    let alu_and: FheUint8 = serialized_configuration_data[2].clone();
+    let alu_xor: FheUint8 = serialized_configuration_data[3].clone();
+    let load: FheUint8 = serialized_configuration_data[4].clone();
+    let save: FheUint8 = serialized_configuration_data[5].clone();
+    let zero_initializer: FheUint8 = serialized_configuration_data[6].clone();
+    let pc_init_value: FheUint8 = serialized_configuration_data[7].clone();
     println!("Config eingelesen");
 
     // Daten einlesen
@@ -51,8 +51,18 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let mut file = File::open("program_data.bin")?;
     file.read_to_end(&mut deserialized_program)?;
 
-    let program_data: Vec<(FheUint8, FheUint8)> = bincode::deserialize(&deserialized_program)?;
+    let mut program_data: Vec<(FheUint8, FheUint8)> = bincode::deserialize(&deserialized_program)?;
     println!("Programm eingelesen.");
+
+    // Ram mit nullen auffüllen, bevor er übergeben wird.
+    while program_data.len() < 256 {
+        program_data.push(
+            (
+                zero_initializer.clone(),
+                zero_initializer.clone()
+            )
+        )
+    }
 
     let mut control_unit = ControlUnit::new(
         alu_add,
@@ -63,7 +73,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         save,
         zero_initializer,
         pc_init_value,
-        program_data
+        program_data,
     );
     println!("CU erstellt.");
 

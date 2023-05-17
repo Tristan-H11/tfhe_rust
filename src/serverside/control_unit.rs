@@ -72,7 +72,7 @@ impl ControlUnit {
             let memory_cell: (FheUint8, FheUint8) = self.memory.read_from_ram(&self.program_counter);
             let opcode: FheUint8 = memory_cell.0;
             let operand: FheUint8 = memory_cell.1;
-            let accu: &FheUint8 = &self.memory.get_accu().clone();
+            let accu: FheUint8 = self.memory.get_accu().clone();
             println!("[ControlUnit] Operanden und Accu ausgelesen.");
 
             // Boolscher Wert für "der akku bekommt einen neuen Wert"

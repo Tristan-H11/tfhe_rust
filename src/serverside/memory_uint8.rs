@@ -23,7 +23,9 @@ impl MemoryUint8 {
 
     pub fn get_data(&self) -> Vec<(FheUint8, FheUint8)> {
         println!("[RAM] get_data() aufgerufen");
-        self.data.clone()
+        let mut data = self.data.clone();
+        data.push((FheUint8::try_encrypt_trivial(16 as u8).unwrap(), self.get_accu().clone()));
+        data
     }
 
     /// Liefert den Wert des Akkumulators zurück.
@@ -35,9 +37,9 @@ impl MemoryUint8 {
     // Schreibt einen neuen Wert in den Akkumulator
     pub fn write_accu(&mut self, new_value: FheUint8, is_write_accu: &FheUint8) {
         println!("[RAM] write_accu() aufgerufen");
-        let lsb_mask: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
+        let one: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
 
-        self.accu = new_value * is_write_accu + &self.accu.clone() * (is_write_accu ^ lsb_mask);
+        self.accu = new_value * is_write_accu + &self.accu.clone() * (one - is_write_accu);
     }
 
     /// Liest einen Wert aus dem RAM, in dem jede Zeile einmal gelesen wird.
@@ -64,18 +66,18 @@ impl MemoryUint8 {
 
     /// Schreibt einen Wert in den RAM und liest sowie schreibt dabei jede Zeile des RAMs einmal, damit
     /// kein Rückschluss auf die veränderte Zeile gezogen werden kann.
-    pub fn write_to_ram(&mut self, address: &FheUint8, value: FheUint8, is_write: &FheUint8) {
+    pub fn write_to_ram(&mut self, address: &FheUint8, new_value: FheUint8, is_write: &FheUint8) {
         println!("[RAM] write_to_ram() aufgerufen");
-        let lsb_mask: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
+        let one: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
 
         for (i, mut field) in self.data.iter_mut().enumerate() {
             let encrypted_index: FheUint8 = FheUint8::try_encrypt_trivial(i as u8).unwrap();
 
             let condition: FheUint8 = address.eq(&encrypted_index) * is_write;
-            let not_condition: FheUint8 = &condition ^ &lsb_mask;
+            let not_condition: FheUint8 = &one - &condition;
 
-            // m_x = (indexEqual AND newValue AND isWrite) OR (!indexEqual AND m_x)
-            field.1 = (condition * value.clone()) + (not_condition * field.1.clone());
+            // m_x = (indexEqual AND isWrite AND new_value) OR (!indexEqual OR !isWrite AND m_x)
+            field.1 = (condition * new_value.clone()) + (not_condition * field.1.clone());
         }
     }
 }

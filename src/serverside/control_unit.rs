@@ -66,6 +66,7 @@ impl ControlUnit {
     /// Führt die Fetch, Decode, execute, writeback Zyklen für die übergebene Anzahl an Zyklen aus.
     pub fn start(&mut self, cycles: u8) {
         println!("[ControlUnit] CU gestartet.");
+        let one: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
         // Weil das Programm im cipherspace nicht terminieren kann, erstmal fixe cycles laufen lassen.
         for i in 0..cycles {
             println!("\n[ControlUnit] Zyklus {} gestartet.", i);
@@ -76,13 +77,13 @@ impl ControlUnit {
             println!("[ControlUnit] Operanden und Accu ausgelesen.");
 
             // Boolscher Wert für "der akku bekommt einen neuen Wert"
-            let is_write_alu_to_accu: FheUint8 = opcode.eq(&self.op_alu_add)
+            let is_alu_command: FheUint8 = opcode.eq(&self.op_alu_add)
                 | opcode.eq(&self.op_alu_and)
                 | opcode.eq(&self.op_alu_or)
                 | opcode.eq(&self.op_alu_xor);
             let is_write_value_to_accu: FheUint8 = opcode.eq(&self.op_load);
 
-            let is_write_accu: FheUint8 = &is_write_alu_to_accu | &is_write_value_to_accu;
+            let is_write_accu: FheUint8 = &is_alu_command | &is_write_value_to_accu;
             println!("[ControlUnit] IsWriteAccu ausgewertet.");
 
             // Boolscher Wert für "der ram bekommt einen neuen Wert"
@@ -97,12 +98,14 @@ impl ControlUnit {
             );
             println!("[ControlUnit] möglichen Schreibzugriff im RAM getätigt");
 
-            let alu_result = self.alu.calculate(opcode.clone(), operand.clone(), accu.clone());
+            let alu_result = self.alu.calculate(opcode.clone(), operand.clone(), accu.clone(), &is_alu_command);
             println!("[ControlUnit] mögliches ALU Ergebnis bestimmt.");
 
-            let possible_new_accu_value = alu_result * is_write_alu_to_accu + operand.clone() * is_write_value_to_accu;
+            let possible_new_accu_value = alu_result * is_alu_command + operand.clone() * is_write_value_to_accu;
 
             self.memory.write_accu(possible_new_accu_value, &is_write_accu);
+
+            self.program_counter = &self.program_counter + &one;
         }
     }
 }

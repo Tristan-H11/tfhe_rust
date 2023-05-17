@@ -52,8 +52,9 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     // Die 16 Bit Befehle,die ausgeführt werden sollen
     let program_data: Vec<(u8, u8)> = vec![
         (LOAD, 5 as u8),
-        // (ALU_ADD, 3 as u8), //TODO Aus Gründen geht nur das Laden in den Akku. Nicht jedoch das speichern oder addieren etc
-        (LOAD, 3 as u8),
+        (ALU_ADD, 3 as u8),
+        (ALU_OR, 1 as u8),
+        (SAVE, 4 as u8),
     ];
 
     // Alle Werte im Vector verschlüsseln und serialiseren

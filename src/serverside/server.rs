@@ -7,8 +7,6 @@ use tfhe::{FheUint8, ServerKey, set_server_key};
 
 use crate::serverside::control_unit::ControlUnit;
 
-pub static RAM_SIZE: usize = 3;
-
 /// Server-Main-Funktion.
 /// Hier werden:
 /// - Der ServerKey eingelesen und gesetzt,
@@ -54,10 +52,13 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     file.read_to_end(&mut deserialized_program)?;
 
     let mut program_data: Vec<(FheUint8, FheUint8)> = bincode::deserialize(&deserialized_program)?;
+
+    let ram_size: usize = program_data.len();
+
     println!("[Server] Programm eingelesen.");
 
     // Ram mit nullen auffüllen, bevor er übergeben wird.
-    while program_data.len() < RAM_SIZE {
+    while program_data.len() < ram_size {
         program_data.push(
             (
                 zero_initializer.clone(),
@@ -76,11 +77,11 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         zero_initializer,
         pc_init_value,
         program_data,
-        RAM_SIZE
+        ram_size.clone()
     );
     println!("[Server] CU erstellt.");
 
-    control_unit.start(3);
+    control_unit.start(ram_size as u8);
 
     let serialized_result = bincode::serialize(&control_unit.get_ram())?;
     let mut file = File::create("calculated_result.bin")?;

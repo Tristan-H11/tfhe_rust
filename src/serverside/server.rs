@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::fs::File;
-use std::io::{Cursor, Read, Write};
+use std::io::{Read, Write};
 
 use bincode;
 use tfhe::{FheUint8, ServerKey, set_server_key};
@@ -35,7 +35,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let mut file = File::open("config_data.bin")?;
     file.read_to_end(&mut configuration_data)?;
 
-    let mut serialized_configuration_data: Vec<FheUint8> = bincode::deserialize(&configuration_data)?;
+    let serialized_configuration_data: Vec<FheUint8> = bincode::deserialize(&configuration_data)?;
 
     // ALU konstruieren
     let alu_add: FheUint8 = serialized_configuration_data[0].clone();

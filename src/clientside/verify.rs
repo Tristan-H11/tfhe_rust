@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::Read;
 
 use bincode;
-use tfhe::{ClientKey, FheUint16, FheUint8};
+use tfhe::{ClientKey, FheUint8};
 use tfhe::prelude::*;
 
 /// Verify-Main-Funktion.

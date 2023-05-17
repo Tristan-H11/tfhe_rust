@@ -1,25 +1,3 @@
-# TODO
-
-Auf HAvard Architektur umbauen. Nur ein einziges Register. Der Akkumulator.<br>
-Jeder Befehl hat nur kein oder ein Argument. Nicht zwei.<br>
-Load X => Schreib X in den Accu <br>
-ADD 3 => Addiert 3 auf den Accu rauf <br>
-S 12 => Speichert den Wert aus dem Accu an Adresse 12
-
-## Cycle
-
-### Fetch
-
-Wert ziehen und OPCODE und OPERAND speichern
-
-### Speicherzugriff
-
-Wenn OPCODE = Speicherbefehl, dann wird OPERAND mit dem Wert aus dem Speicher überschrieben, sonst bleibt es bei OPERAND
-
-### Execute
-
-ES gibt Befehle, die in den Accu speichern. (load und alle alu befehle)
-
 # CPU-Emulator
 
 ### Simples Beispielprogramm
@@ -52,14 +30,25 @@ Damit haben Befehle nur keinen oder einen Operanden.
 
 ### Arithmetik-Befehle
 
-Die Arithmetik-Befehle haben in ihrem letzten OPCode Bit eine 0.
+Die Arithmetik-Befehle haben in ihrem letzten OPCode Bit eine 0.<br>
+Die Arithmetik-Befehle, welche einen Wert aus dem RAM laden, haben im 5. Bit eine 1.
+Abgesehen davon, unterscheiden sich die je beiden Variationen eines Befehls nicht.
 
-| Befehl | Instruction         | Legende       | Beschreibung                                  |
-|--------|---------------------|---------------|-----------------------------------------------|
-| ADD    | `(00010)(XXXXXXXX)` | X = Konstante | Addiert die Konstante auf den Akkumulator.    |
-| OR     | `(00100)(XXXXXXXX)` | X = Konstante | Ver-odert die Konstante auf den Akkumulator.  |
-| AND    | `(00110)(XXXXXXXX)` | X = Konstante | Ver-undet die Konstante auf den Akkumulator.  |
-| XOR    | `(01000)(XXXXXXXX)` | X = Konstante | Ver-xOdert die Konstante auf den Akkumulator. |
+| Befehl | Instruction         | Legende       | Beschreibung                                              |
+|--------|---------------------|---------------|-----------------------------------------------------------|
+| ADD    | `(00010)(XXXXXXXX)` | X = Konstante | Addiert die Konstante auf den Akkumulator.                |
+| OR     | `(00100)(XXXXXXXX)` | X = Konstante | Ver-odert die Konstante auf den Akkumulator.              |
+| AND    | `(00110)(XXXXXXXX)` | X = Konstante | Ver-undet die Konstante auf den Akkumulator.              |
+| XOR    | `(01000)(XXXXXXXX)` | X = Konstante | Ver-xOdert die Konstante auf den Akkumulator.             |
+| SUB    | `(01010)(XXXXXXXX)` | X = Konstante | Subtrahiert die Konstante von dem Akkumulator.            |
+| MUL    | `(01100)(XXXXXXXX)` | X = Konstante | Multipliziert die Konstante mit dem Akkumulator.          |
+|        |                     |               |                                                           |
+| ADD_R  | `(10010)(XXXXXXXX)` | X = RAM-Adr   | Addiert den Wert von RAM-Adr X auf den Akkumulator.       |
+| OR_R   | `(10100)(XXXXXXXX)` | X = RAM-Adr   | Ver-odert den Wert von RAM-Adr X auf den Akkumulator.     |
+| AND_R  | `(10110)(XXXXXXXX)` | X = RAM-Adr   | Ver-undet den Wert von RAM-Adr X auf den Akkumulator.     |
+| XOR_R  | `(11000)(XXXXXXXX)` | X = RAM-Adr   | Ver-xOdert den Wert von RAM-Adr X auf den Akkumulator.    |
+| SUB_R  | `(11010)(XXXXXXXX)` | X = RAM-Adr   | Subtrahiert den Wert von RAM-Adr X von dem Akkumulator.   |
+| MUL_R  | `(11100)(XXXXXXXX)` | X = RAM-Adr   | Multipliziert den Wert von RAM-Adr X mit dem Akkumulator. |
 
 ### Transport-Befehle
 
@@ -68,4 +57,5 @@ Transport-Befehle haben in ihrem letzten OPCode Bit eine 1.
 | Befehl | Instruction         | Legende       | Beschreibung                                      |
 |--------|---------------------|---------------|---------------------------------------------------|
 | LOAD   | `(00001)(XXXXXXXX)` | X = Konstante | Lädt den Wert X in den Akkumulator.               |
-| SAVE   | `(00011)(XXXXXXXX)` | X = RAM-Adr   | Speichert den Akkumulatorwert an die RAM-Adresse. |
+| LOAD_R | `(00011)(XXXXXXXX)` | X = RAM-Adr   | Lädt den Wert von RAM-Adr X in den Akkumulator.   |
+| SAVE   | `(00101)(XXXXXXXX)` | X = RAM-Adr   | Speichert den Akkumulatorwert an die RAM-Adresse. |

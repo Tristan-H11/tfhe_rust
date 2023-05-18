@@ -53,6 +53,8 @@ impl ControlUnit {
             opcode_and: op_alu_and.clone(),
             opcode_or: op_alu_or.clone(),
             opcode_xor: op_alu_xor.clone(),
+            opcode_sub: op_alu_sub.clone(),
+            opcode_mul: op_alu_mul.clone(),
             zero_flag: zero_initializer.clone(),
             overflow_flag: zero_initializer.clone(),
             carry_flag: zero_initializer.clone(),
@@ -130,7 +132,12 @@ impl ControlUnit {
                 + ram_value * (is_operand_from_ram);
             println!("[ControlUnit] Operanden (RAM oder Konstante) ausgewertet.");
 
-            let alu_result = self.alu.calculate(alu_opcode, calculation_data.clone(), accu.clone(), &is_alu_command);
+            let alu_result = self.alu.calculate(
+                alu_opcode,
+                calculation_data.clone(),
+                accu.clone(),
+                &is_alu_command
+            );
             println!("[ControlUnit] mögliches ALU Ergebnis bestimmt.");
 
             let possible_new_accu_value = alu_result * is_alu_command + calculation_data.clone() * is_load_command;
@@ -152,13 +159,13 @@ impl ControlUnit {
         // 1 - LSB => Wenn das letzte Bit eine 1 (kein alu Befehl) ist, kommt 0 raus, ist es eine 0 (alu Befehl) kommt 1 raus.
     }
     fn is_operand_from_ram(&self, opcode: &FheUint8) -> FheUint8 {
-        opcode.eq(&self.op_load_r)
-            | opcode.eq(&self.op_alu_add_r)
-            | opcode.eq(&self.op_alu_or_r)
-            | opcode.eq(&self.op_alu_and_r)
-            | opcode.eq(&self.op_alu_xor_r)
-            | opcode.eq(&self.op_alu_mul_r)
-            | opcode.eq(&self.op_alu_sub_r)
-        // Das bit steht an 5. Stelle, daher muss geshiftet werden.
+        //opcode.eq(&self.op_load_r)
+        //    | opcode.eq(&self.op_alu_add_r)
+        //    | opcode.eq(&self.op_alu_or_r)
+          //  | opcode.eq(&self.op_alu_and_r)
+           // | opcode.eq(&self.op_alu_xor_r)
+           // | opcode.eq(&self.op_alu_mul_r)
+            //| opcode.eq(&self.op_alu_sub_r)
+        FheUint8::try_encrypt_trivial(1 as u8).unwrap()
     }
 }

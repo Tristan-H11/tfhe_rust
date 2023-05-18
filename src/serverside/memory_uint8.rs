@@ -57,9 +57,10 @@ impl MemoryUint8 {
             let encrypted_index: FheUint8 = FheUint8::try_encrypt_trivial(i as u8).unwrap();
 
             // OpCode auslesen
-            result.0 = result.0 + (&value.0 * address.eq(&encrypted_index));
+            let condition: FheUint8 = address.eq(&encrypted_index);
+            result.0 = result.0 + (&value.0 * &condition);
             // Operanden auslesen
-            result.1 = result.1 + (&value.1 * address.eq(&encrypted_index));
+            result.1 = result.1 + (&value.1 * &condition);
         }
         result
     }

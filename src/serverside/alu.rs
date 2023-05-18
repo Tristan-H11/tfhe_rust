@@ -13,6 +13,8 @@ pub struct Alu {
     pub(crate) opcode_and: FheUint8,
     pub(crate) opcode_or: FheUint8,
     pub(crate) opcode_xor: FheUint8,
+    pub(crate) opcode_sub: FheUint8,
+    pub(crate) opcode_mul: FheUint8,
     pub(crate) zero_flag: FheUint8,
     pub(crate) overflow_flag: FheUint8,
     pub(crate) carry_flag: FheUint8
@@ -46,6 +48,14 @@ impl Alu {
         let is_xor: FheUint8 = op_code.eq(&self.opcode_xor);
         let xor = (&a ^ &b) * is_xor;
         let result = result + xor;
+
+        let is_sub: FheUint8 = op_code.eq(&self.opcode_sub);
+        let sub = (&a - &b) * is_sub;
+        let result = result + sub;
+
+        let is_mul: FheUint8 = op_code.eq(&self.opcode_mul);
+        let mul = (&a * &b) * is_mul;
+        let result = result + mul;
 
         let one: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
 

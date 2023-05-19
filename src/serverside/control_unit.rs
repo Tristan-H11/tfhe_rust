@@ -90,7 +90,7 @@ impl ControlUnit {
             );
             println!("[ControlUnit] mögliches ALU Ergebnis bestimmt.");
 
-            let possible_new_accu_value = alu_result * is_alu_command + calculation_data.clone() * is_load_command; // Todo: genau anschauen
+            let possible_new_accu_value = alu_result * is_alu_command + calculation_data.clone() * is_load_command;
 
             self.memory.write_accu(possible_new_accu_value, &is_write_accu);
 

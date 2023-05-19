@@ -58,10 +58,21 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         PC_INIT_VALUE,
     ];
 
-    // Die 16 Bit Befehle,die ausgeführt werden sollen
+    // Die Befehle, die ausgeführt werden sollen
     let program_data: Vec<(u8, u8)> = vec![
-        (ALU_ADD, 3 as u8),
-        (ALU_ADD_R, 0 as u8)
+        (LOAD, 1),      // Lade 1 in den Akkumulator (Akk = 1)
+        (LOAD, 2),      // Lade 2 in den Akkumulator (Akk = 2)
+        (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 2)
+        (SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 2)
+        (LOAD, 3),      // Lade 3 in den Akkumulator (Akk = 3)
+        (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 6)
+        (SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 6)
+        (LOAD, 4),      // Lade 4 in den Akkumulator (Akk = 4)
+        (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 24)
+        (SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 24)
+        (LOAD, 5),      // Lade 5 in den Akkumulator (Akk = 5)
+        (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 120)
+        (SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 120)
     ];
 
     // Alle Werte im Vector verschlüsseln und serialiseren

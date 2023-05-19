@@ -57,10 +57,11 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         load: serialized_configuration_data[12].clone(),
         load_r: serialized_configuration_data[13].clone(),
         save: serialized_configuration_data[14].clone(),
+        jnz: serialized_configuration_data[15].clone()
     };
 
-    let zero_initializer: FheUint8 = serialized_configuration_data[15].clone();
-    let pc_init_value: FheUint8 = serialized_configuration_data[16].clone();
+    let zero_initializer: FheUint8 = serialized_configuration_data[16].clone();
+    let pc_init_value: FheUint8 = serialized_configuration_data[17].clone();
     println!("[Server] Config eingelesen");
 
     // Daten einlesen
@@ -71,8 +72,6 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let mut program_data: Vec<(FheUint8, FheUint8)> = bincode::deserialize(&deserialized_program)?;
 
     // Die ram_size wird nun abhängig von dem übergebenen Programm bestimmt.
-    // Damit ist sichergestellt, dass die CPU nur so viele Zyklen durchläuft, wie das Programm lang ist.
-    // Ohne Sprünge ist das noch möglich.
     let ram_size: usize = program_data.len();
 
     println!("[Server] Programm eingelesen.");

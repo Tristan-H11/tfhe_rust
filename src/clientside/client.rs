@@ -54,6 +54,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         LOAD,
         LOAD_R,
         SAVE,
+        JNZ,
         ZERO_INITIALIZER,
         PC_INIT_VALUE,
     ];

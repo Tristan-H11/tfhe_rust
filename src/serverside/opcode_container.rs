@@ -9,6 +9,7 @@ pub struct OpcodeContainer {
     pub(crate) load: FheUint8,
     pub(crate) load_r: FheUint8,
     pub(crate) save: FheUint8,
+    pub(crate) jnz: FheUint8,
 }
 
 impl OpcodeContainer {
@@ -32,5 +33,10 @@ impl OpcodeContainer {
     /// Prüft, ob es sich um einen Command handelt, welcher einen Wert in den RAM schreiben soll.
     pub fn is_write_to_ram(&self, opcode: &FheUint8) -> FheUint8 {
         opcode.eq(&self.save)
+    }
+    
+    /// Prüft, ob es sich um einen Sprungbefehl handelt.
+    pub fn is_jump_command(&self, opcode: &FheUint8) -> FheUint8 {
+        opcode.eq(&self.jnz)
     }
 }

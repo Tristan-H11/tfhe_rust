@@ -78,7 +78,7 @@ impl ControlUnit {
 
             let has_to_load_operand_from_ram: FheUint8 = self.opcodes.has_to_load_operand_from_ram(&opcode);
             let ram_value: FheUint8 = self.memory.read_from_ram(&operand).1;
-            let calculation_data: FheUint8 = operand * (&one - &has_to_load_operand_from_ram)
+            let calculation_data: FheUint8 = &operand * (&one - &has_to_load_operand_from_ram)
                 + ram_value * (has_to_load_operand_from_ram);
             println!("[ControlUnit] Operanden (RAM oder Konstante) ausgewertet.");
 
@@ -96,9 +96,9 @@ impl ControlUnit {
 
             let is_jump = self.opcodes.is_jump_command(&opcode);
             // (1 - cond) = !cond, weil 1 - 1 = 0 und 1 - 0 = 1.
-            let is_no_jump: FheUint8 = &one - is_jump;
+            let is_no_jump: FheUint8 = &one - &is_jump;
             let incremented_pc: FheUint8 = &self.program_counter + &one;
-            let jnz_condition: &FheUint8 = &self.alu.zero_flag * &is_jump;
+            let jnz_condition: FheUint8 = &self.alu.zero_flag * &is_jump;
 
             // pc = ((pc + 1) * noJump) + (operand * jump)
             self.program_counter = incremented_pc * is_no_jump + &operand * jnz_condition;

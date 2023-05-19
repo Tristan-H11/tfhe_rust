@@ -1,5 +1,6 @@
 use tfhe::FheUint8;
 use tfhe::prelude::*;
+use crate::serverside::opcode_container_alu::OpcodeContainerAlu;
 
 /// Darstellung der ALU über vorgegebene Operationen, die mit selbst gewählten OpCodes
 /// angesteuert werden können.
@@ -9,12 +10,7 @@ use tfhe::prelude::*;
 /// - Binäres Oder
 /// - Binäres XOr
 pub struct Alu {
-    pub(crate) opcode_add: FheUint8,
-    pub(crate) opcode_and: FheUint8,
-    pub(crate) opcode_or: FheUint8,
-    pub(crate) opcode_xor: FheUint8,
-    pub(crate) opcode_sub: FheUint8,
-    pub(crate) opcode_mul: FheUint8,
+    pub(crate) opcodes: OpcodeContainerAlu,
     pub(crate) zero_flag: FheUint8,
     pub(crate) overflow_flag: FheUint8,
     pub(crate) carry_flag: FheUint8
@@ -27,33 +23,33 @@ impl Alu {
     ///
     /// Soweit alle OpCodes richtig gesetzt sind und ein zulässiger op_code übergeben wird, wird immer ein Ergebnis berechnet.
     /// Sollten OpCodes falsch gesetzt sein, kann fälschlicherweise `0` berechnet werden.
-    pub fn calculate(&mut self, op_code: FheUint8, a: FheUint8, b: FheUint8, is_alu_command: &FheUint8) -> FheUint8 {
+    pub fn calculate(&mut self, op_code: &FheUint8, a: FheUint8, b: FheUint8, is_alu_command: &FheUint8) -> FheUint8 {
         println!("[ALU] Berechnung gestartet.");
         // Addition
-        let is_addition: FheUint8 = op_code.eq(&self.opcode_add);
+        let is_addition: FheUint8 = self.opcodes.is_add(&op_code);
         let addition = (&a + &b) * is_addition;
         let result = addition;
 
         // AND
-        let is_and: FheUint8 = op_code.eq(&self.opcode_and);
+        let is_and: FheUint8 = self.opcodes.is_and(&op_code);
         let and = (&a & &b) * is_and;
         let result = result + and;
 
         // OR
-        let is_or: FheUint8 = op_code.eq(&self.opcode_or);
+        let is_or: FheUint8 = self.opcodes.is_or(&op_code);
         let or = (&a | &b) * is_or;
         let result = result + or;
 
         // XOR
-        let is_xor: FheUint8 = op_code.eq(&self.opcode_xor);
+        let is_xor: FheUint8 = self.opcodes.is_xor(&op_code);
         let xor = (&a ^ &b) * is_xor;
         let result = result + xor;
 
-        let is_sub: FheUint8 = op_code.eq(&self.opcode_sub);
+        let is_sub: FheUint8 = self.opcodes.is_sub(&op_code);
         let sub = (&a - &b) * is_sub;
         let result = result + sub;
 
-        let is_mul: FheUint8 = op_code.eq(&self.opcode_mul);
+        let is_mul: FheUint8 = self.opcodes.is_mul(&op_code);
         let mul = (&a * &b) * is_mul;
         let result = result + mul;
 

@@ -23,9 +23,7 @@ impl MemoryUint8 {
 
     pub fn get_data(&self) -> Vec<(FheUint8, FheUint8)> {
         println!("[RAM] get_data() aufgerufen");
-        let mut data = self.data.clone();
-        data.push((FheUint8::try_encrypt_trivial(16 as u8).unwrap(), self.get_accu().clone()));
-        data
+        self.data.clone()
     }
 
     /// Liefert den Wert des Akkumulators zurück.

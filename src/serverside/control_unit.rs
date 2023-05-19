@@ -94,7 +94,14 @@ impl ControlUnit {
 
             self.memory.write_accu(possible_new_accu_value, &is_write_accu);
 
-            self.program_counter = &self.program_counter + &one;
+            let is_jump = self.opcodes.is_jump_command(&opcode);
+            // (1 - cond) = !cond, weil 1 - 1 = 0 und 1 - 0 = 1.
+            let is_no_jump: FheUint8 = &one - is_jump;
+            let incremented_pc: FheUint8 = &self.program_counter + &one;
+            let jnz_condition: &FheUint8 = &self.alu.zero_flag * &is_jump;
+
+            // pc = ((pc + 1) * noJump) + (operand * jump)
+            self.program_counter = incremented_pc * is_no_jump + &operand * jnz_condition;
         }
     }
 }

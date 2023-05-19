@@ -1,16 +1,7 @@
 # CPU-Emulator
-
-### Simples Beispielprogramm
-
-```
-LOAD 5  ; schreibt 5 in den Akkumulator
-ADD 3   ; Addiert 3 auf den Akkumulator (3+5 => 8)
-SAVE 12 ; Speichert den Wert des Akkumulators (8) in RAM-Zeile 12
-```
-
 ## Speicher
 
-Der RAM wird mit 8 Adressbits angesprochen und hält jeweils (5Bit OpCode, 8Bit Operand) pro Zelle.
+Der RAM wird mit 8 Adressbits angesprochen und hält jeweils (5Bit OpCode, 8Bit Operand) pro Zelle. (Gespeichert wird es jedoch als Tupel von zwei je 8 Bit zahlen)
 
 Damit ein unsichtbarer Zugriff auf den RAM garantiert ist, wird jede Zeile einmal gelesen und der Rückgabewert (die
 gewünschte RAM-Zelle) arithmetisch bestimmt.
@@ -62,3 +53,37 @@ Jede Operation ist mit unmittelbarer und mit direkter Adressierung vorhanden.
 | Befehl | Instruction         | Legende       | Beschreibung                                          |
 |--------|---------------------|---------------|-------------------------------------------------------|
 | JNZ    | `(10000)(XXXXXXXX)` | X = Konstante | Setzt den PC auf X, wenn der Akkumulator nicht 0 ist. |
+
+## Beispielprogramm
+### Fakultät 5 (hardcoded)
+```rust
+    (LOAD, 1),      // Lade 1 in den Akkumulator (Akk = 1)
+    (LOAD, 2),      // Lade 2 in den Akkumulator (Akk = 2)
+    (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 2)
+    (SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 2)
+    (LOAD, 3),      // Lade 3 in den Akkumulator (Akk = 3)
+    (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 6)
+    (SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 6)
+    (LOAD, 4),      // Lade 4 in den Akkumulator (Akk = 4)
+    (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 24)
+    (SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 24)
+    (LOAD, 5),      // Lade 5 in den Akkumulator (Akk = 5)
+    (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 120)
+    (SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 120)
+```
+
+### Fakultät n (iterativ)
+```rust
+    (LOAD, 2),      // Speicher für den Counter allocaten <-1
+    (LOAD, 3),      // Initialwert des Ergebnisses <-6
+    // Multiplikation
+    (LOAD_R, 1),
+    (ALU_MUL_R, 0), // Multiplizieren
+    (SAVE, 1),      // Ergebnis zwischenspeichern
+    // Counter-Dekrement
+    (LOAD_R, 0),    // Counter laden
+    (ALU_SUB, 1),   // Counter dekrementieren
+    (SAVE, 0),      // Counter zwischenspeichern
+    // Jump
+    (JNZ, 2),       // Von vorn, wenn Accu != 0
+```

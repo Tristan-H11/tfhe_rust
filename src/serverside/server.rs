@@ -6,6 +6,8 @@ use bincode;
 use tfhe::{FheUint8, ServerKey, set_server_key};
 
 use crate::serverside::control_unit::ControlUnit;
+use crate::serverside::opcode_container::OpcodeContainer;
+use crate::serverside::opcode_container_alu::OpcodeContainerAlu;
 
 /// Server-Main-Funktion.
 /// Hier werden:
@@ -35,21 +37,28 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
     let serialized_configuration_data: Vec<FheUint8> = bincode::deserialize(&configuration_data)?;
 
-    let alu_add: FheUint8 = serialized_configuration_data[0].clone();
-    let alu_or: FheUint8 = serialized_configuration_data[1].clone();
-    let alu_and: FheUint8 = serialized_configuration_data[2].clone();
-    let alu_xor: FheUint8 = serialized_configuration_data[3].clone();
-    let alu_sub: FheUint8 = serialized_configuration_data[4].clone();
-    let alu_mul: FheUint8 = serialized_configuration_data[5].clone();
-    let alu_add_r: FheUint8 = serialized_configuration_data[6].clone();
-    let alu_or_r: FheUint8 = serialized_configuration_data[7].clone();
-    let alu_and_r: FheUint8 = serialized_configuration_data[8].clone();
-    let alu_xor_r: FheUint8 = serialized_configuration_data[9].clone();
-    let alu_sub_r: FheUint8 = serialized_configuration_data[10].clone();
-    let alu_mul_r: FheUint8 = serialized_configuration_data[11].clone();
-    let load: FheUint8 = serialized_configuration_data[12].clone();
-    let load_r: FheUint8 = serialized_configuration_data[13].clone();
-    let save: FheUint8 = serialized_configuration_data[14].clone();
+    let opcodes_alu: OpcodeContainerAlu = OpcodeContainerAlu {
+        add: serialized_configuration_data[0].clone(),
+        or: serialized_configuration_data[1].clone(),
+        and: serialized_configuration_data[2].clone(),
+        xor: serialized_configuration_data[3].clone(),
+        sub: serialized_configuration_data[4].clone(),
+        mul: serialized_configuration_data[5].clone(),
+        add_r: serialized_configuration_data[6].clone(),
+        or_r: serialized_configuration_data[7].clone(),
+        and_r: serialized_configuration_data[8].clone(),
+        xor_r: serialized_configuration_data[9].clone(),
+        sub_r: serialized_configuration_data[10].clone(),
+        mul_r: serialized_configuration_data[11].clone(),
+    };
+
+    let opcodes: OpcodeContainer = OpcodeContainer {
+        opcodes_alu,
+        load: serialized_configuration_data[12].clone(),
+        load_r: serialized_configuration_data[13].clone(),
+        save: serialized_configuration_data[14].clone(),
+    };
+
     let zero_initializer: FheUint8 = serialized_configuration_data[15].clone();
     let pc_init_value: FheUint8 = serialized_configuration_data[16].clone();
     println!("[Server] Config eingelesen");
@@ -61,7 +70,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
     let mut program_data: Vec<(FheUint8, FheUint8)> = bincode::deserialize(&deserialized_program)?;
 
-    // Die RAM_SIZE wird nun abhängig von dem übergebenn Programm bestimmt.
+    // Die ram_size wird nun abhängig von dem übergebenen Programm bestimmt.
     // Damit ist sichergestellt, dass die CPU nur so viele Zyklen durchläuft, wie das Programm lang ist.
     // Ohne Sprünge ist das noch möglich.
     let ram_size: usize = program_data.len();
@@ -79,25 +88,11 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     }
 
     let mut control_unit = ControlUnit::new(
-        alu_add,
-        alu_or,
-        alu_and,
-        alu_xor,
-        alu_sub,
-        alu_mul,
-        alu_add_r,
-        alu_or_r,
-        alu_and_r,
-        alu_xor_r,
-        alu_sub_r,
-        alu_mul_r,
-        load,
-        load_r,
-        save,
+        opcodes,
         zero_initializer,
         pc_init_value,
         program_data,
-        ram_size.clone()
+        ram_size.clone(),
     );
     println!("[Server] CU erstellt.");
 

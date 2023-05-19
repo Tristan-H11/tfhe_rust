@@ -30,32 +30,35 @@ Damit haben Befehle nur keinen oder einen Operanden.
 
 ### Arithmetik-Befehle
 
-Die Arithmetik-Befehle haben in ihrem letzten OPCode Bit eine 0.<br>
-Die Arithmetik-Befehle, welche einen Wert aus dem RAM laden, haben im 5. Bit eine 1.
-Abgesehen davon, unterscheiden sich die je beiden Variationen eines Befehls nicht.
+Die Arithmetik-Befehle führen Berechnungen auf dem Akkumulator aus.
+Jede Operation ist mit unmittelbarer und mit direkter Adressierung vorhanden.
 
 | Befehl | Instruction         | Legende       | Beschreibung                                              |
 |--------|---------------------|---------------|-----------------------------------------------------------|
-| ADD    | `(00010)(XXXXXXXX)` | X = Konstante | Addiert die Konstante auf den Akkumulator.                |
-| OR     | `(00100)(XXXXXXXX)` | X = Konstante | Ver-odert die Konstante auf den Akkumulator.              |
-| AND    | `(00110)(XXXXXXXX)` | X = Konstante | Ver-undet die Konstante auf den Akkumulator.              |
-| XOR    | `(01000)(XXXXXXXX)` | X = Konstante | Ver-xOdert die Konstante auf den Akkumulator.             |
-| SUB    | `(01010)(XXXXXXXX)` | X = Konstante | Subtrahiert die Konstante von dem Akkumulator.            |
-| MUL    | `(01100)(XXXXXXXX)` | X = Konstante | Multipliziert die Konstante mit dem Akkumulator.          |
+| ADD    | `(00001)(XXXXXXXX)` | X = Konstante | Addiert die Konstante auf den Akkumulator.                |
+| OR     | `(00010)(XXXXXXXX)` | X = Konstante | Ver-odert die Konstante auf den Akkumulator.              |
+| AND    | `(00011)(XXXXXXXX)` | X = Konstante | Ver-undet die Konstante auf den Akkumulator.              |
+| XOR    | `(00100)(XXXXXXXX)` | X = Konstante | Ver-xOdert die Konstante auf den Akkumulator.             |
+| SUB    | `(00101)(XXXXXXXX)` | X = Konstante | Subtrahiert die Konstante von dem Akkumulator.            |
+| MUL    | `(00110)(XXXXXXXX)` | X = Konstante | Multipliziert die Konstante mit dem Akkumulator.          |
 |        |                     |               |                                                           |
-| ADD_R  | `(10010)(XXXXXXXX)` | X = RAM-Adr   | Addiert den Wert von RAM-Adr X auf den Akkumulator.       |
-| OR_R   | `(10100)(XXXXXXXX)` | X = RAM-Adr   | Ver-odert den Wert von RAM-Adr X auf den Akkumulator.     |
-| AND_R  | `(10110)(XXXXXXXX)` | X = RAM-Adr   | Ver-undet den Wert von RAM-Adr X auf den Akkumulator.     |
-| XOR_R  | `(11000)(XXXXXXXX)` | X = RAM-Adr   | Ver-xOdert den Wert von RAM-Adr X auf den Akkumulator.    |
-| SUB_R  | `(11010)(XXXXXXXX)` | X = RAM-Adr   | Subtrahiert den Wert von RAM-Adr X von dem Akkumulator.   |
-| MUL_R  | `(11100)(XXXXXXXX)` | X = RAM-Adr   | Multipliziert den Wert von RAM-Adr X mit dem Akkumulator. |
+| ADD_R  | `(00111)(XXXXXXXX)` | X = RAM-Adr   | Addiert den Wert von RAM-Adr X auf den Akkumulator.       |
+| OR_R   | `(01000)(XXXXXXXX)` | X = RAM-Adr   | Ver-odert den Wert von RAM-Adr X auf den Akkumulator.     |
+| AND_R  | `(01001)(XXXXXXXX)` | X = RAM-Adr   | Ver-undet den Wert von RAM-Adr X auf den Akkumulator.     |
+| XOR_R  | `(01010)(XXXXXXXX)` | X = RAM-Adr   | Ver-xOdert den Wert von RAM-Adr X auf den Akkumulator.    |
+| SUB_R  | `(01011)(XXXXXXXX)` | X = RAM-Adr   | Subtrahiert den Wert von RAM-Adr X von dem Akkumulator.   |
+| MUL_R  | `(01100)(XXXXXXXX)` | X = RAM-Adr   | Multipliziert den Wert von RAM-Adr X mit dem Akkumulator. |
 
 ### Transport-Befehle
 
-Transport-Befehle haben in ihrem letzten OPCode Bit eine 1.
-
 | Befehl | Instruction         | Legende       | Beschreibung                                      |
 |--------|---------------------|---------------|---------------------------------------------------|
-| LOAD   | `(00001)(XXXXXXXX)` | X = Konstante | Lädt den Wert X in den Akkumulator.               |
-| LOAD_R | `(00011)(XXXXXXXX)` | X = RAM-Adr   | Lädt den Wert von RAM-Adr X in den Akkumulator.   |
-| SAVE   | `(00101)(XXXXXXXX)` | X = RAM-Adr   | Speichert den Akkumulatorwert an die RAM-Adresse. |
+| LOAD   | `(01101)(XXXXXXXX)` | X = Konstante | Lädt den Wert X in den Akkumulator.               |
+| LOAD_R | `(01110)(XXXXXXXX)` | X = RAM-Adr   | Lädt den Wert von RAM-Adr X in den Akkumulator.   |
+| SAVE   | `(01111)(XXXXXXXX)` | X = RAM-Adr   | Speichert den Akkumulatorwert an die RAM-Adresse. |
+
+### Programmfluss-Befehle
+
+| Befehl | Instruction         | Legende       | Beschreibung                                          |
+|--------|---------------------|---------------|-------------------------------------------------------|
+| JNZ    | `(10000)(XXXXXXXX)` | X = Konstante | Setzt den PC auf X, wenn der Akkumulator nicht 0 ist. |

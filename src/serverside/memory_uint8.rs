@@ -33,11 +33,11 @@ impl MemoryUint8 {
     }
 
     // Schreibt einen neuen Wert in den Akkumulator
-    pub fn write_accu(&mut self, new_value: FheUint8, is_write_accu: &FheUint8) {
+    pub fn write_accu(&mut self, new_value: &FheUint8, is_write_accu: &FheUint8) {
         println!("[RAM] write_accu() aufgerufen");
         let one: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
 
-        self.accu = new_value * is_write_accu + &self.accu.clone() * (one - is_write_accu);
+        self.accu = new_value * is_write_accu + self.get_accu() * (one - is_write_accu);
     }
 
     /// Liest einen Wert aus dem RAM, in dem jede Zeile einmal gelesen wird.
@@ -65,7 +65,7 @@ impl MemoryUint8 {
 
     /// Schreibt einen Wert in den RAM und liest sowie schreibt dabei jede Zeile des RAMs einmal, damit
     /// kein Rückschluss auf die veränderte Zeile gezogen werden kann.
-    pub fn write_to_ram(&mut self, address: &FheUint8, new_value: FheUint8, is_write: &FheUint8) {
+    pub fn write_to_ram(&mut self, address: &FheUint8, new_value: &FheUint8, is_write: &FheUint8) {
         println!("[RAM] write_to_ram() aufgerufen");
         let one: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
 

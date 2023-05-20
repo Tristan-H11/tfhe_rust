@@ -95,7 +95,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     );
     println!("[Server] CU erstellt.");
 
-    control_unit.start(18);
+    control_unit.start(25);
 
     let serialized_result = bincode::serialize(&control_unit.get_ram())?;
     let mut file = File::create("calculated_result.bin")?;

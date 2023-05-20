@@ -209,6 +209,10 @@ Jede Operation ist mit unmittelbarer und mit direkter Adressierung vorhanden.
 
 ## Beispielprogramm
 
+Die aktuelle Version der CPU ist in kaum einer Hinsicht auf Geschwindigkeit optimiert.
+<br>
+Aktuell benötigt ein Ryzen 5 3600 knapp 34 Sekunden und ein Apple M2 knapp 20 Sekunden pro CPU-Zyklus.
+
 ### Fakultät 5 (hardcoded)
 
 ```rust
@@ -227,11 +231,11 @@ Jede Operation ist mit unmittelbarer und mit direkter Adressierung vorhanden.
     (SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 120)
 ```
 
-### Fakultät 3 (iterativ)
-
+### Fakultät N (iterativ)
+N und N-1 durch die entsprechenden Werte wie 3 und 2 ersetzen.
 ```rust
-    (LOAD, 2),      // Speicher für den Counter allocaten <-1
-    (LOAD, 3),      // Initialwert des Ergebnisses <-6
+    (LOAD, N-1),      // Speicher für den Counter allocaten <-1
+    (LOAD, N),      // Initialwert des Ergebnisses <-6
     // Multiplikation
     (LOAD_R, 1),
     (ALU_MUL_R, 0), // Multiplizieren

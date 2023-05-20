@@ -61,8 +61,8 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
     // Die Befehle, die ausgeführt werden sollen
     let program_data: Vec<(u8, u8)> = vec![
-        (LOAD, 2),      // Speicher für den Counter allocaten <-1
-        (LOAD, 3),      // Initialwert des Ergebnisses <-6
+        (LOAD, 3),      // Speicher für den Counter allocaten <-1
+        (LOAD, 4),      // Initialwert des Ergebnisses <-6
         // Multiplikation
         (LOAD_R, 1),
         (ALU_MUL_R, 0), // Multiplizieren

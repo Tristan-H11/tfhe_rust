@@ -1,3 +1,4 @@
+use std::time::Instant;
 use tfhe::FheUint8;
 use tfhe::prelude::*;
 use crate::serverside::opcode_container_alu::OpcodeContainerAlu;
@@ -24,7 +25,7 @@ impl Alu {
     /// Soweit alle OpCodes richtig gesetzt sind und ein zulässiger op_code übergeben wird, wird immer ein Ergebnis berechnet.
     /// Sollten OpCodes falsch gesetzt sein, kann fälschlicherweise `0` berechnet werden.
     pub fn calculate(&mut self, op_code: &FheUint8, operand: &FheUint8, accu: &FheUint8, is_alu_command: &FheUint8) -> FheUint8 {
-        println!("[ALU] Berechnung gestartet.");
+        let start_time = Instant::now();
         // Addition
         let is_addition: FheUint8 = self.opcodes.is_add(&op_code);
         let addition = (operand + accu) * is_addition;
@@ -63,7 +64,7 @@ impl Alu {
         let new_carry_flag: FheUint8 = self.calculate_carry(operand, accu);
         self.carry_flag = new_carry_flag * is_alu_command + &self.carry_flag * (&one - is_alu_command);
 
-        println!("[ALU] Berechnung und Flags abgeschlossen.");
+        println!("[ALU, {}ms] Berechnung und Flags abgeschlossen.", start_time.elapsed().as_millis());
         result
     }
 

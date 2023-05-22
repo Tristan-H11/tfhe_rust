@@ -253,15 +253,15 @@ Es werden 10 Zyklen durchlaufen und der RAM ist entsprechend auch 10 Zeilen gro�
 | Schritt                                   | Apple M2 (Macbook Air) | Ryzen 5 3600 |
 |-------------------------------------------|:----------------------:|:------------:|
 | Client Ausf체hrung                         |         639 ms         |              |
-| Server Ausf체hrung                         |       38'6928 ms       |              |
-| Verify Ausf체hrung                         |          1 ms          |              |
+| Server Ausf체hrung                         |       265'928 ms       |              |
+| Verify Ausf체hrung                         |         <1 ms          |              |
 |                                           |                        |              |
-| Ganzer CPU Zyklus                         |       27'500 ms        |              |
-| RAM lesen                                 |        5'600 ms        |              |
-| RAM schreiben                             |        9'000 ms        |              |
-| Operand und Accu auslesen                 |        5'400 ms        |              |
+| Ganzer CPU Zyklus                         |       24'600 ms        |              |
+| RAM lesen                                 |        5'200 ms        |              |
+| RAM schreiben                             |        6'500 ms        |              |
+| Operand und Accu auslesen                 |        5'300 ms        |              |
 | IsWriteAccu und IsWriteRam auswerten      |        1'300 ms        |              |
-| Operand (absolut / direkt adr.) auswerten |        6'800 ms        |              |
+| Operand (absolut / direkt adr.) auswerten |        6'600 ms        |              |
 | ALU Berechnung                            |        3'800 ms        |              |
 | Akkumulator bestimmen und schreiben       |        1'100 ms        |              |
 | ProgramCounter bestimmen und schreiben    |        1'100 ms        |              |

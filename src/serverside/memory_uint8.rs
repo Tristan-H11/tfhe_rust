@@ -107,15 +107,43 @@ impl MemoryUint8 {
         let start_time = Instant::now();
         let one: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
 
-        for (i, field) in self.data.iter_mut().enumerate() {
-            let encrypted_index: FheUint8 = FheUint8::try_encrypt_trivial(i as u8).unwrap();
+        let thread_count: usize = 4;
+        let chunk_size = max(thread_count, self.data.len() / thread_count);
 
-            let condition: FheUint8 = address.eq(&encrypted_index) * is_write;
-            let not_condition: FheUint8 = &one - &condition;
+        let chunks = self.data.chunks(chunk_size);
+        let mut handles: Vec<JoinHandle<Vec<(FheUint8, FheUint8)>>> = vec![];
 
-            // m_x = (indexEqual AND isWrite AND new_value) OR (!indexEqual OR !isWrite AND m_x)
-            field.1 = (condition * new_value.clone()) + (not_condition * field.1.clone());
+        for (i, chunk) in chunks.into_iter().enumerate() {
+            let address = address.clone();
+            let new_value = new_value.clone();
+            let is_write = is_write.clone();
+            let one = one.clone();
+            let mut result = chunk.to_vec();
+            let key = self.key.clone();
+
+            handles.push(thread::spawn(move || {
+                set_server_key(key);
+                for (j, field) in result.iter_mut().enumerate() {
+                    let index: u8 = (i * chunk_size + j) as u8;
+                    let encrypted_index: FheUint8 = FheUint8::try_encrypt_trivial(index).unwrap();
+
+                    let condition: FheUint8 = address.eq(&encrypted_index) * &is_write;
+                    let not_condition: FheUint8 = &one - &condition;
+
+                    field.1 = (condition * new_value.clone()) + (not_condition * field.1.clone());
+                }
+                result
+            }));
         }
+
+        // Die veränderten Chunks von allen Threads sammeln und zusammenfassen
+        let mut new_data = Vec::new();
+        for handle in handles {
+            let chunk_result = handle.join().unwrap();
+            new_data.extend(chunk_result);
+        }
+        self.data = new_data;
+
         println!("[RAM, {}ms] Schreiben des RAMs beendet.", start_time.elapsed().as_millis());
     }
 }

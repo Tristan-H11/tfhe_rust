@@ -63,18 +63,18 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     // Die Befehle, die ausgeführt werden sollen
     let program_data: Vec<(u8, u8)> = vec![
         (LOAD, 2),
-        (ALU_ADD, 1),
-        (SAVE, 0), // Add in 0 => Erwartet: 3
-        (ALU_OR, 4),
-        (SAVE, 1), // Or in 1 => Erwartet: 7
-        (ALU_AND, 4),
-        (SAVE, 2), // And in 2 => Erwartet: 4
-        (ALU_XOR, 2),
-        (SAVE, 3), // XOR in 3 => Erwartet: 6
-        (ALU_SUB, 5),
-        (SAVE, 4), // SUB in 4 => Erwartet: 1
-        (ALU_MUL, 0),
-        (SAVE, 5) // MUL in 5 => Erwartet: 0
+        (ALU_ADD_R, 0),
+        (SAVE, 0), // Add in 0 => Erwartet: 4
+        (ALU_OR_R, 0),
+        (SAVE, 1), // Or in 1 => Erwartet: 4
+        (ALU_AND_R, 4),
+        (SAVE, 2), // And in 2 => Erwartet: 0
+        (ALU_XOR_R, 0),
+        (SAVE, 3), // XOR in 3 => Erwartet: 4
+        (ALU_SUB_R, 4),
+        (SAVE, 4), // SUB in 4 => Erwartet: 3
+        (ALU_MUL_R, 0),
+        (SAVE, 5) // MUL in 5 => Erwartet: 12
     ];
 
     // Alle Werte im Vector verschlüsseln und serialiseren

@@ -333,19 +333,19 @@ Die ersten 6 Zellen des RAM sollten die Werte `[3,7,4,6,1,0]` aufweisen.
 ### Testprogramm - direkte Arithmetik
 
 Es werden ADD, OR, AND, XOR, SUB und MUl mit direkt-adressierten Operanden getestet.
-Die ersten 6 Zellen des RAM sollten die Werte `[4,6,0,2,1,2]` aufweisen.
+Die ersten 6 Zellen des RAM sollten die Werte `[4,4,0,4,3,12]` aufweisen.
 ```rust
 (LOAD, 2),
 (ALU_ADD_R, 0),
 (SAVE, 0), // Add in 0 => Erwartet: 4
 (ALU_OR_R, 0),
-(SAVE, 1), // Or in 1 => Erwartet: 6
+(SAVE, 1), // Or in 1 => Erwartet: 4
 (ALU_AND_R, 4),
 (SAVE, 2), // And in 2 => Erwartet: 0
 (ALU_XOR_R, 0),
-(SAVE, 3), // XOR in 3 => Erwartet: 2
+(SAVE, 3), // XOR in 3 => Erwartet: 4
 (ALU_SUB_R, 4),
-(SAVE, 4), // SUB in 4 => Erwartet: 1
+(SAVE, 4), // SUB in 4 => Erwartet: 3
 (ALU_MUL_R, 0),
-(SAVE, 5) // MUL in 5 => Erwartet: 2
+(SAVE, 5) // MUL in 5 => Erwartet: 12
 ```

@@ -18,7 +18,7 @@ use crate::clientside::statics::*;
 /// - die Operanden und der OpCode für die Alu verschlüsselt und serialisiert. (Das wird sich demnächst ändern, wenn die CU gebaut wird)
 pub fn start() -> Result<(), Box<dyn Error>> {
     let config = ConfigBuilder::all_disabled()
-        .enable_default_uint8()
+        .enable_default_integers()
         .build();
     let (client_key, server_key) = generate_keys(config);
 

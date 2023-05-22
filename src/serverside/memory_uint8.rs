@@ -1,3 +1,4 @@
+use std::time::Instant;
 use tfhe::FheUint8;
 use tfhe::prelude::*;
 
@@ -34,17 +35,18 @@ impl MemoryUint8 {
 
     // Schreibt einen neuen Wert in den Akkumulator
     pub fn write_accu(&mut self, new_value: &FheUint8, is_write_accu: &FheUint8) {
-        println!("[RAM] write_accu() aufgerufen");
+        let start_time = Instant::now();
         let one: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
 
         self.accu = new_value * is_write_accu + self.get_accu() * (one - is_write_accu);
+        println!("[RAM, {}ms] Schreiben des Akkumulators beendet.", start_time.elapsed().as_millis());
     }
 
     /// Liest einen Wert aus dem RAM, in dem jede Zeile einmal gelesen wird.
     /// Der "unsichtbare" Zugriff ist durch die arithmetische Logik anstelle von
     /// Verzweigungen gelöst.
     pub fn read_from_ram(&self, address: &FheUint8) -> (FheUint8, FheUint8) {
-        println!("[RAM] read_from_ram() aufgerufen");
+        let start_time = Instant::now();
         let mut result: (FheUint8, FheUint8) =
             (
                 FheUint8::try_encrypt_trivial(0 as u8).unwrap(),
@@ -60,13 +62,14 @@ impl MemoryUint8 {
             // Operanden auslesen
             result.1 = result.1 + (&value.1 * &condition);
         }
+        println!("[RAM, {}ms] Lesen des RAMs beendet.", start_time.elapsed().as_millis());
         result
     }
 
     /// Schreibt einen Wert in den RAM und liest sowie schreibt dabei jede Zeile des RAMs einmal, damit
     /// kein Rückschluss auf die veränderte Zeile gezogen werden kann.
     pub fn write_to_ram(&mut self, address: &FheUint8, new_value: &FheUint8, is_write: &FheUint8) {
-        println!("[RAM] write_to_ram() aufgerufen");
+        let start_time = Instant::now();
         let one: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
 
         for (i, field) in self.data.iter_mut().enumerate() {
@@ -78,5 +81,6 @@ impl MemoryUint8 {
             // m_x = (indexEqual AND isWrite AND new_value) OR (!indexEqual OR !isWrite AND m_x)
             field.1 = (condition * new_value.clone()) + (not_condition * field.1.clone());
         }
+        println!("[RAM, {}ms] Schreiben des RAMs beendet.", start_time.elapsed().as_millis());
     }
 }

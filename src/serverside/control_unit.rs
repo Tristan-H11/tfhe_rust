@@ -1,5 +1,7 @@
+use std::thread;
+use std::thread::JoinHandle;
 use std::time::Instant;
-use tfhe::{FheUint8, ServerKey};
+use tfhe::{FheUint8, ServerKey, set_server_key};
 use tfhe::prelude::*;
 
 use crate::serverside::alu::Alu;
@@ -11,7 +13,8 @@ pub struct ControlUnit {
     memory: MemoryUint8,
     program_counter: FheUint8,
     // OP-Codes, damit die unterschiedlichen Modi arithmetisch ausgewertet werden können.
-    opcodes: OpcodeContainer
+    opcodes: OpcodeContainer,
+    server_key: ServerKey,
 }
 
 impl ControlUnit {
@@ -41,7 +44,8 @@ impl ControlUnit {
             alu,
             memory,
             program_counter: pc_init_value,
-            opcodes
+            opcodes,
+            server_key
         }
     }
 
@@ -52,7 +56,7 @@ impl ControlUnit {
     /// Führt die Fetch, Decode, execute, writeback Zyklen für die übergebene Anzahl an Zyklen aus.
     pub fn start(&mut self, cycles: u8) {
         println!("[ControlUnit] CU gestartet.");
-        let one: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
+        let one: &FheUint8 = &FheUint8::try_encrypt_trivial(1 as u8).unwrap();
 
         // Weil das Programm im cipherspace nicht terminieren kann, erstmal fixe cycles laufen lassen.
         for i in 1..(cycles+1) {
@@ -65,6 +69,8 @@ impl ControlUnit {
             let operand: &FheUint8 = &memory_cell.1;
             let accu: FheUint8 = self.memory.get_accu().clone();
             println!("[ControlUnit, {}ms] Operanden und Accu ausgelesen.", start_time.elapsed().as_millis());
+
+            let program_counter_thread = self.calculate_program_counter(one, opcode, operand, self.server_key.clone());
 
             let start_time = Instant::now();
             let is_alu_command: FheUint8 = self.opcodes.is_alu_command(opcode);
@@ -85,7 +91,7 @@ impl ControlUnit {
             let start_time = Instant::now();
             let has_to_load_operand_from_ram: FheUint8 = self.opcodes.has_to_load_operand_from_ram(opcode);
             let ram_value: FheUint8 = self.memory.read_from_ram(operand).1;
-            let calculation_data: FheUint8 = operand * (&one - &has_to_load_operand_from_ram)
+            let calculation_data: FheUint8 = operand * (one - &has_to_load_operand_from_ram)
                 + ram_value * (has_to_load_operand_from_ram);
             println!("[ControlUnit, {}ms] Operand (ob RAM oder Konstante) ausgewertet.", start_time.elapsed().as_millis());
 
@@ -102,17 +108,32 @@ impl ControlUnit {
             self.memory.write_accu(&possible_new_accu_value, &is_write_accu);
             println!("[ControlUnit, {}ms] Akkumulatorwert bestimmt und geschrieben.", start_time.elapsed().as_millis());
 
-            let start_time = Instant::now();
-            let is_jump: FheUint8 = self.opcodes.is_jump_command(opcode);
-            // (1 - cond) = !cond, weil 1 - 1 = 0 und 1 - 0 = 1.
-            let is_no_jump: FheUint8 = &one - &is_jump;
-            let incremented_pc: FheUint8 = &self.program_counter + &one;
-            let jnz_condition: FheUint8 = &self.alu.zero_flag * &is_jump;
+            self.program_counter = program_counter_thread.join().unwrap();
 
-            // pc = ((pc + 1) * noJump) + (operand * jump)
-            self.program_counter = incremented_pc * is_no_jump + operand * jnz_condition;
-            println!("[ControlUnit, {}ms] ProrgramCounter bestimmt und gesetzt.", start_time.elapsed().as_millis());
             println!("[ControlUnit] Zyklus {} in {}ms beendet.", i, start_cycle.elapsed().as_millis());
         }
+    }
+
+    fn calculate_program_counter(&mut self, one: &FheUint8, opcode: &FheUint8, operand: &FheUint8, key: ServerKey) -> JoinHandle<FheUint8> {
+        let pc = self.program_counter.clone();
+        let zero_flag = self.alu.zero_flag.clone();
+        let opcode = opcode.clone();
+        let opcodes = self.opcodes.clone();
+        let operand = operand.clone();
+        let one = one.clone();
+        thread::spawn(move || {
+            set_server_key(key);
+            let start_time = Instant::now();
+            let is_jump: FheUint8 = opcodes.is_jump_command(&opcode);
+
+            // (1 - cond) = !cond, weil 1 - 1 = 0 und 1 - 0 = 1.
+            let is_no_jump: FheUint8 = &one - &is_jump;
+            let incremented_pc: FheUint8 = pc + &one;
+            let jnz_condition: FheUint8 = zero_flag * &is_jump;
+            // pc = ((pc + 1) * noJump) + (operand * jump)
+            let result = incremented_pc * is_no_jump + operand * jnz_condition;
+            println!("[ControlUnit, {}ms] ProgramCounter bestimmt und gesetzt.", start_time.elapsed().as_millis());
+            result
+        })
     }
 }

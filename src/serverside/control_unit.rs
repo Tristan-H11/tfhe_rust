@@ -1,3 +1,4 @@
+use std::time::Instant;
 use tfhe::FheUint8;
 use tfhe::prelude::*;
 
@@ -54,19 +55,22 @@ impl ControlUnit {
         // Weil das Programm im cipherspace nicht terminieren kann, erstmal fixe cycles laufen lassen.
         for i in 0..cycles {
             println!("\n[ControlUnit] Zyklus {} gestartet.", i);
+            let start_cycle = Instant::now();
+            let start_time = Instant::now();
+
             let memory_cell: (FheUint8, FheUint8) = self.memory.read_from_ram(&self.program_counter);
             let opcode: &FheUint8 = &memory_cell.0;
             let operand: &FheUint8 = &memory_cell.1;
             let accu: FheUint8 = self.memory.get_accu().clone();
-            println!("[ControlUnit] Operanden und Accu ausgelesen.");
+            println!("[ControlUnit, {}ms] Operanden und Accu ausgelesen.", start_time.elapsed().as_millis());
 
+            let start_time = Instant::now();
             let is_alu_command: FheUint8 = self.opcodes.is_alu_command(opcode);
             let is_load_command: FheUint8 = self.opcodes.is_load_command(opcode);
             let is_write_accu: FheUint8 = &is_alu_command | &is_load_command;
-            println!("[ControlUnit] IsWriteAccu ausgewertet.");
 
             let is_write_ram: FheUint8 = self.opcodes.is_write_to_ram(opcode);
-            println!("[ControlUnit] IsWriteRam ausgewertet.");
+            println!("[ControlUnit, {}ms] IsWriteAccu und IsWriteRam ausgewertet.", start_time.elapsed().as_millis());
 
             // Akku-Wert an die Adresse OPERAND schreiben, falls geschrieben werden soll.
             self.memory.write_to_ram(
@@ -76,11 +80,12 @@ impl ControlUnit {
             );
             println!("[ControlUnit] möglichen Schreibzugriff im RAM getätigt");
 
+            let start_time = Instant::now();
             let has_to_load_operand_from_ram: FheUint8 = self.opcodes.has_to_load_operand_from_ram(opcode);
             let ram_value: FheUint8 = self.memory.read_from_ram(operand).1;
             let calculation_data: FheUint8 = operand * (&one - &has_to_load_operand_from_ram)
                 + ram_value * (has_to_load_operand_from_ram);
-            println!("[ControlUnit] Operanden (RAM oder Konstante) ausgewertet.");
+            println!("[ControlUnit, {}ms] Operand (ob RAM oder Konstante) ausgewertet.", start_time.elapsed().as_millis());
 
             let alu_result: FheUint8 = self.alu.calculate(
                 &opcode,
@@ -90,10 +95,12 @@ impl ControlUnit {
             );
             println!("[ControlUnit] mögliches ALU Ergebnis bestimmt.");
 
+            let start_time = Instant::now();
             let possible_new_accu_value: FheUint8 = alu_result * is_alu_command + calculation_data.clone() * is_load_command;
-
             self.memory.write_accu(&possible_new_accu_value, &is_write_accu);
+            println!("[ControlUnit, {}ms] Akkumulatorwert bestimmt und geschrieben.", start_time.elapsed().as_millis());
 
+            let start_time = Instant::now();
             let is_jump: FheUint8 = self.opcodes.is_jump_command(opcode);
             // (1 - cond) = !cond, weil 1 - 1 = 0 und 1 - 0 = 1.
             let is_no_jump: FheUint8 = &one - &is_jump;
@@ -102,6 +109,7 @@ impl ControlUnit {
 
             // pc = ((pc + 1) * noJump) + (operand * jump)
             self.program_counter = incremented_pc * is_no_jump + operand * jnz_condition;
+            println!("[ContrlUnit, {}ms] ProrgramCounter bestimmt und gesetzt.", start_time.elapsed().as_millis())
         }
     }
 }

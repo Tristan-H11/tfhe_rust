@@ -253,25 +253,25 @@ Es werden 10 Zyklen durchlaufen und der RAM ist entsprechend auch 10 Zeilen gro�
 
 | Schritt                                   | Apple M2 (Macbook Air) | Ryzen 5 3600 |
 |-------------------------------------------|:----------------------:|:------------:|
-| Client Ausführung                         |         639 ms         |              |
-| Server Ausführung                         |       265'928 ms       |              |
-| Verify Ausführung                         |         <1 ms          |              |
+| Client Ausführung                         |         639 ms         |   1'620 ms   |
+| Server Ausführung                         |       265'928 ms       |  291'627 ms  |
+| Verify Ausführung                         |         <1 ms          |     3 ms     |
 |                                           |                        |              |
-| Ganzer CPU Zyklus                         |       24'600 ms        |              |
-| RAM lesen                                 |        5'200 ms        |              |
-| RAM schreiben                             |        6'500 ms        |              |
-| Operand und Accu auslesen                 |        5'300 ms        |              |
-| IsWriteAccu und IsWriteRam auswerten      |        1'300 ms        |              |
-| Operand (absolut / direkt adr.) auswerten |        6'600 ms        |              |
-| ALU Berechnung                            |        3'800 ms        |              |
-| Akkumulator bestimmen und schreiben       |        1'100 ms        |              |
-| ProgramCounter bestimmen und schreiben    |        1'100 ms        |              |
+| Ganzer CPU Zyklus                         |       24'600 ms        |  28'701 ms   |
+| RAM lesen                                 |        5'200 ms        |   5'964 ms   |
+| RAM schreiben                             |        6'500 ms        |   7'355 ms   |
+| Operand und Accu auslesen                 |        5'300 ms        |   6'188 ms   |
+| IsWriteAccu und IsWriteRam auswerten      |        1'300 ms        |   1'875 ms   |
+| Operand (absolut / direkt adr.) auswerten |        6'600 ms        |   7'399 ms   |
+| ALU Berechnung                            |        3'800 ms        |   4'465 ms   |
+| Akkumulator bestimmen und schreiben       |        1'100 ms        |   1'416 ms   |
+| ProgramCounter bestimmen und schreiben    |        1'100 ms        |   1'525 ms   |
 
 Hier ist deutlich zu sehen, dass alle Operationen, die Zugriff auf den RAM ausüben, am deutlich längsten brauchen.
 Die Zeit, die ein RAM Zugriff (lesend oder schreibend) benötigt, steigt linear mit der Größe des RAM an.
 Daher ist der RAM per Default auch nur so groß, wie das Programm lang ist.
 <br>
-Die Zeiten sind aus dem ersten CPU-Zyklus entnommen, da die weiteren Zyklen durch CPU Throttling teilweise deutlich
+Die Zeiten sind aus dem ersten CPU-Zyklus entnommen, da die weiteren Zyklen des M2 durch CPU Throttling teilweise deutlich
 langsamer waren.
 
 ## Beispielprogramm

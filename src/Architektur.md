@@ -239,9 +239,10 @@ Jede Operation ist mit unmittelbarer und mit direkter Adressierung vorhanden.
 
 ### Programmfluss-Befehle
 
-| Befehl | Instruction         | Legende       | Beschreibung                                          |
-|--------|---------------------|---------------|-------------------------------------------------------|
-| JNZ    | `(10000)(XXXXXXXX)` | X = Konstante | Setzt den PC auf X, wenn der Akkumulator nicht 0 ist. |
+| Befehl | Instruction         | Legende       | Beschreibung                                              |
+|--------|---------------------|---------------|-----------------------------------------------------------|
+| JNZ    | `(10000)(XXXXXXXX)` | X = Konstante | Setzt den PC auf X, wenn das Zero Flag nicht gesetzt ist. |
+| JMP    | `(10001)(XXXXXXXX)` | X = Konstante | Setzt den PC auf X.                                       |
 
 ## Benchmarks
 
@@ -270,7 +271,9 @@ Hier ist deutlich zu sehen, dass alle Operationen, die Zugriff auf den RAM ausü
 Die Zeit, die ein RAM Zugriff (lesend oder schreibend) benötigt, steigt linear mit der Größe des RAM an.
 Daher ist der RAM per Default auch nur so groß, wie das Programm lang ist.
 <br>
-Die Zeiten sind aus dem ersten CPU-Zyklus entnommen, da die weiteren Zyklen durch CPU Throttling teilweise deutlich langsamer waren.
+Die Zeiten sind aus dem ersten CPU-Zyklus entnommen, da die weiteren Zyklen durch CPU Throttling teilweise deutlich
+langsamer waren.
+
 ## Beispielprogramm
 
 ### Fakultät 5 (hardcoded)
@@ -305,4 +308,44 @@ N und N-1 durch die entsprechenden Werte wie 3 und 2 ersetzen.
 (SAVE, 0),      // Counter zwischenspeichern
 // Jump
 (JNZ, 2),       // Von vorn, wenn Accu != 0
+```
+
+### Testprogramm - unmittelbare Arithmetik
+
+Es werden ADD, OR, AND, XOR, SUB und MUl mit unmittelbaren Operanden getestet.
+Die ersten 6 Zellen des RAM sollten die Werte `[3,7,4,6,1,0]` aufweisen.
+```rust
+(LOAD, 2),
+(ALU_ADD, 1),
+(SAVE, 0), // Add in 0 => Erwartet: 3
+(ALU_OR, 4),
+(SAVE, 1), // Or in 1 => Erwartet: 7
+(ALU_AND, 4),
+(SAVE, 2), // And in 2 => Erwartet: 4
+(ALU_XOR, 2),
+(SAVE, 3), // XOR in 3 => Erwartet: 6
+(ALU_SUB, 5),
+(SAVE, 4), // SUB in 4 => Erwartet: 1
+(ALU_MUL, 0),
+(SAVE, 5) // MUL in 5 => Erwartet: 0
+```
+
+### Testprogramm - direkte Arithmetik
+
+Es werden ADD, OR, AND, XOR, SUB und MUl mit direkt-adressierten Operanden getestet.
+Die ersten 6 Zellen des RAM sollten die Werte `[4,6,0,2,1,2]` aufweisen.
+```rust
+(LOAD, 2),
+(ALU_ADD_R, 0),
+(SAVE, 0), // Add in 0 => Erwartet: 4
+(ALU_OR_R, 0),
+(SAVE, 1), // Or in 1 => Erwartet: 6
+(ALU_AND_R, 4),
+(SAVE, 2), // And in 2 => Erwartet: 0
+(ALU_XOR_R, 0),
+(SAVE, 3), // XOR in 3 => Erwartet: 2
+(ALU_SUB_R, 4),
+(SAVE, 4), // SUB in 4 => Erwartet: 1
+(ALU_MUL_R, 0),
+(SAVE, 5) // MUL in 5 => Erwartet: 2
 ```

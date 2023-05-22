@@ -61,18 +61,19 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
     // Die Befehle, die ausgeführt werden sollen
     let program_data: Vec<(u8, u8)> = vec![
-        (LOAD, 3),      // Speicher für den Counter allocaten <-1
-        (LOAD, 4),      // Initialwert des Ergebnisses <-6
-        // Multiplikation
-        (LOAD_R, 1),
-        (ALU_MUL_R, 0), // Multiplizieren
-        (SAVE, 1),      // Ergebnis zwischenspeichern
-        // Counter-Dekrement
-        (LOAD_R, 0),    // Counter laden
-        (ALU_SUB, 1),   // Counter dekrementieren
-        (SAVE, 0),      // Counter zwischenspeichern
-        // Jump
-        (JNZ, 2),       // Von vorn, wenn Accu != 0
+        (LOAD, 1),      // Lade 1 in den Akkumulator (Akk = 1)
+        (LOAD, 2),      // Lade 2 in den Akkumulator (Akk = 2)
+        (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 2)
+        (SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 2)
+        (LOAD, 3),      // Lade 3 in den Akkumulator (Akk = 3)
+        (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 6)
+        (SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 6)
+        (LOAD, 4),      // Lade 4 in den Akkumulator (Akk = 4)
+        (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 24)
+        (SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 24)
+        (LOAD, 5),      // Lade 5 in den Akkumulator (Akk = 5)
+        (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 120)
+        (SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 120)
     ];
 
     // Alle Werte im Vector verschlüsseln und serialiseren

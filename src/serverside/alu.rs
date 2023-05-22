@@ -1,5 +1,6 @@
+use std::thread;
 use std::time::Instant;
-use tfhe::FheUint8;
+use tfhe::{FheUint8, ServerKey, set_server_key};
 use tfhe::prelude::*;
 use crate::serverside::opcode_container_alu::OpcodeContainerAlu;
 
@@ -14,7 +15,8 @@ pub struct Alu {
     pub(crate) opcodes: OpcodeContainerAlu,
     pub(crate) zero_flag: FheUint8,
     pub(crate) overflow_flag: FheUint8,
-    pub(crate) carry_flag: FheUint8
+    pub(crate) carry_flag: FheUint8,
+    pub(crate) server_key: ServerKey,
 }
 
 impl Alu {
@@ -26,33 +28,53 @@ impl Alu {
     /// Sollten OpCodes falsch gesetzt sein, kann fälschlicherweise `0` berechnet werden.
     pub fn calculate(&mut self, op_code: &FheUint8, operand: &FheUint8, accu: &FheUint8, is_alu_command: &FheUint8) -> FheUint8 {
         let start_time = Instant::now();
+
         // Addition
-        let is_addition: FheUint8 = self.opcodes.is_add(&op_code);
-        let addition = (operand + accu) * is_addition;
-        let result = addition;
+        let add_and_thread = {
+            let opcodes = self.opcodes.clone();
+            let op_code = op_code.clone();
+            let operand = operand.clone();
+            let accu = accu.clone();
+            let key = self.server_key.clone();
+            thread::spawn(move || {
+                set_server_key(key);
+                let is_addition: FheUint8 = opcodes.is_add(&op_code);
+                let is_and: FheUint8 = opcodes.is_and(&op_code);
+                (&operand + &accu) * is_addition + (operand & accu) * is_and
+            })
+        };
 
-        // AND
-        let is_and: FheUint8 = self.opcodes.is_and(&op_code);
-        let and = (operand & accu) * is_and;
-        let result = result + and;
+        let or_xor_thread = {
+            let opcodes = self.opcodes.clone();
+            let op_code = op_code.clone();
+            let operand = operand.clone();
+            let accu = accu.clone();
+            let key = self.server_key.clone();
+            thread::spawn(move || {
+                set_server_key(key);
+                let is_or: FheUint8 = opcodes.is_or(&op_code);
+                let is_xor: FheUint8 = opcodes.is_xor(&op_code);
+                (&operand | &accu) * is_or + (operand ^ accu) * is_xor
+            })
+        };
 
-        // OR
-        let is_or: FheUint8 = self.opcodes.is_or(&op_code);
-        let or = (operand | accu) * is_or;
-        let result = result + or;
+        let sub_mul_thread = {
+            let opcodes = self.opcodes.clone();
+            let op_code = op_code.clone();
+            let operand = operand.clone();
+            let accu = accu.clone();
+            let key = self.server_key.clone();
+            thread::spawn(move || {
+                set_server_key(key);
+                let is_mul: FheUint8 = opcodes.is_mul(&op_code);
+                let is_sub: FheUint8 = opcodes.is_sub(&op_code);
+                (&operand * &accu) * is_mul + (accu - operand) * is_sub
+            })
+        };
 
-        // XOR
-        let is_xor: FheUint8 = self.opcodes.is_xor(&op_code);
-        let xor = (operand ^ accu) * is_xor;
-        let result = result + xor;
-
-        let is_sub: FheUint8 = self.opcodes.is_sub(&op_code);
-        let sub = (accu - operand) * is_sub;
-        let result = result + sub;
-
-        let is_mul: FheUint8 = self.opcodes.is_mul(&op_code);
-        let mul = (operand * accu) * is_mul;
-        let result = result + mul;
+        let result = add_and_thread.join().unwrap()
+            + or_xor_thread.join().unwrap()
+            + sub_mul_thread.join().unwrap();
 
         let one: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
 

@@ -1,5 +1,5 @@
 use std::time::Instant;
-use tfhe::FheUint8;
+use tfhe::{FheUint8, ServerKey};
 use tfhe::prelude::*;
 
 use crate::serverside::alu::Alu;
@@ -21,12 +21,14 @@ impl ControlUnit {
         pc_init_value: FheUint8,
         program_data: Vec<(FheUint8, FheUint8)>,
         ram_size: usize,
+        server_key: ServerKey,
     ) -> ControlUnit {
         let alu = Alu {
             opcodes: opcodes.opcodes_alu.clone(),
             zero_flag: zero_initializer.clone(),
             overflow_flag: zero_initializer.clone(),
             carry_flag: zero_initializer.clone(),
+            server_key: server_key.clone(),
         };
 
         let memory = MemoryUint8::new(

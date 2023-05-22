@@ -29,6 +29,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     file.read_to_end(&mut serialized_server_key)?;
     let server_key: ServerKey = bincode::deserialize(&serialized_server_key)?;
 
+    let cloned_key = server_key.clone();
     set_server_key(server_key);
     println!("[Server, {}ms] ServerKey eingelesen und gesetzt.", start_time.elapsed().as_millis());
 
@@ -96,6 +97,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         pc_init_value,
         program_data,
         ram_size.clone(),
+        cloned_key,
     );
     println!("[Server, {}ms] CU erstellt.", start_time.elapsed().as_millis());
 

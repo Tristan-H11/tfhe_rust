@@ -97,7 +97,7 @@ impl ControlUnit {
             println!("[ControlUnit, {}ms] Operand (ob RAM oder Konstante) ausgewertet.", start_time.elapsed().as_millis());
 
             let alu_result: FheUint8 = self.alu.calculate(
-                &opcode,
+                opcode,
                 &calculation_data,
                 &accu,
                 &is_alu_command

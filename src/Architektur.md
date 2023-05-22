@@ -248,46 +248,44 @@ Jede Operation ist mit unmittelbarer und mit direkter Adressierung vorhanden.
 ### Fakultät 5 (hardcoded)
 
 Ausführungszeiten in Millisekunden der einzelnen Schritte auf unterschiedlichen Prozessoren mit der `--release` Option.
-Es werden 12 Zyklen durchlaufen und der RAM ist entsprechend auch 12 Zeilen groß.
+Es werden 10 Zyklen durchlaufen und der RAM ist entsprechend auch 10 Zeilen groß.
 
 | Schritt                                   | Apple M2 (Macbook Air) | Ryzen 5 3600 |
 |-------------------------------------------|:----------------------:|:------------:|
-| Client Ausführung                         |        3023 ms         |              |
-| Server Ausführung                         |       501388 ms        |              |
+| Client Ausführung                         |         639 ms         |              |
+| Server Ausführung                         |       38'6928 ms       |              |
 | Verify Ausführung                         |          1 ms          |              |
 |                                           |                        |              |
-| Ganzer CPU Zyklus                         |        38000 ms        |              |
-| RAM lesen                                 |        8500 ms         |              |
-| RAM schreiben                             |        11300 ms        |              |
-| Operand und Accu auslesen                 |        8800 ms         |              |
-| IsWriteAccu und IsWriteRam auswerten      |        1050 ms         |              |
-| Operand (absolut / direkt adr.) auswerten |        9500 ms         |              |
-| ALU Berechnung                            |        4600 ms         |              |
-| Akkumulator bestimmen und schreiben       |        1100 ms         |              |
-| ProgramCounter bestimmen und schreiben    |         950 ms         |              |
+| Ganzer CPU Zyklus                         |       27'500 ms        |              |
+| RAM lesen                                 |        5'600 ms        |              |
+| RAM schreiben                             |        9'000 ms        |              |
+| Operand und Accu auslesen                 |        5'400 ms        |              |
+| IsWriteAccu und IsWriteRam auswerten      |        1'300 ms        |              |
+| Operand (absolut / direkt adr.) auswerten |        6'800 ms        |              |
+| ALU Berechnung                            |        3'800 ms        |              |
+| Akkumulator bestimmen und schreiben       |        1'100 ms        |              |
+| ProgramCounter bestimmen und schreiben    |        1'100 ms        |              |
 
 Hier ist deutlich zu sehen, dass alle Operationen, die Zugriff auf den RAM ausüben, am deutlich längsten brauchen.
 Die Zeit, die ein RAM Zugriff (lesend oder schreibend) benötigt, steigt linear mit der Größe des RAM an.
 Daher ist der RAM per Default auch nur so groß, wie das Programm lang ist.
-
+<br>
+Die Zeiten sind aus dem ersten CPU-Zyklus entnommen, da die weiteren Zyklen durch CPU Throttling teilweise deutlich langsamer waren.
 ## Beispielprogramm
 
 ### Fakultät 5 (hardcoded)
 
 ```rust
-    (LOAD, 1),      // Lade 1 in den Akkumulator (Akk = 1)
-    (LOAD, 2),      // Lade 2 in den Akkumulator (Akk = 2)
-    (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 2)
-    (SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 2)
-    (LOAD, 3),      // Lade 3 in den Akkumulator (Akk = 3)
-    (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 6)
-    (SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 6)
-    (LOAD, 4),      // Lade 4 in den Akkumulator (Akk = 4)
-    (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 24)
-    (SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 24)
-    (LOAD, 5),      // Lade 5 in den Akkumulator (Akk = 5)
-    (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 120)
-    (SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 120)
+    (LOAD, 2),      // Lade 1 in den Akkumulator (Akk = 1)
+(LOAD, 3),      // Lade 3 in den Akkumulator (Akk = 3)
+(ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 6)
+(SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 6)
+(LOAD, 4),      // Lade 4 in den Akkumulator (Akk = 4)
+(ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 24)
+(SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 24)
+(LOAD, 5),      // Lade 5 in den Akkumulator (Akk = 5)
+(ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 120)
+(SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 120)
 ```
 
 ### Fakultät N (iterativ)
@@ -296,15 +294,15 @@ N und N-1 durch die entsprechenden Werte wie 3 und 2 ersetzen.
 
 ```rust
     (LOAD, N-1),      // Speicher für den Counter allocaten <-1
-    (LOAD, N),      // Initialwert des Ergebnisses <-6
-    // Multiplikation
-    (LOAD_R, 1),
-    (ALU_MUL_R, 0), // Multiplizieren
-    (SAVE, 1),      // Ergebnis zwischenspeichern
-    // Counter-Dekrement
-    (LOAD_R, 0),    // Counter laden
-    (ALU_SUB, 1),   // Counter dekrementieren
-    (SAVE, 0),      // Counter zwischenspeichern
-    // Jump
-    (JNZ, 2),       // Von vorn, wenn Accu != 0
+(LOAD, N),      // Initialwert des Ergebnisses <-6
+// Multiplikation
+(LOAD_R, 1),
+(ALU_MUL_R, 0), // Multiplizieren
+(SAVE, 1),      // Ergebnis zwischenspeichern
+// Counter-Dekrement
+(LOAD_R, 0),    // Counter laden
+(ALU_SUB, 1),   // Counter dekrementieren
+(SAVE, 0),      // Counter zwischenspeichern
+// Jump
+(JNZ, 2),       // Von vorn, wenn Accu != 0
 ```

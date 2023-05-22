@@ -62,10 +62,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
     // Die Befehle, die ausgeführt werden sollen
     let program_data: Vec<(u8, u8)> = vec![
-        (LOAD, 1),      // Lade 1 in den Akkumulator (Akk = 1)
-        (LOAD, 2),      // Lade 2 in den Akkumulator (Akk = 2)
-        (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 2)
-        (SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 2)
+        (LOAD, 2),      // Lade 1 in den Akkumulator (Akk = 1)
         (LOAD, 3),      // Lade 3 in den Akkumulator (Akk = 3)
         (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 6)
         (SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 6)

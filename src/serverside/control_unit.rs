@@ -53,7 +53,7 @@ impl ControlUnit {
         let one: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
 
         // Weil das Programm im cipherspace nicht terminieren kann, erstmal fixe cycles laufen lassen.
-        for i in 0..cycles {
+        for i in 1..(cycles+1) {
             println!("\n[ControlUnit] Zyklus {} gestartet.", i);
             let start_cycle = Instant::now();
             let start_time = Instant::now();
@@ -109,7 +109,8 @@ impl ControlUnit {
 
             // pc = ((pc + 1) * noJump) + (operand * jump)
             self.program_counter = incremented_pc * is_no_jump + operand * jnz_condition;
-            println!("[ContrlUnit, {}ms] ProrgramCounter bestimmt und gesetzt.", start_time.elapsed().as_millis())
+            println!("[ControlUnit, {}ms] ProrgramCounter bestimmt und gesetzt.", start_time.elapsed().as_millis());
+            println!("[ControlUnit] Zyklus {} in {}ms beendet.", i, start_cycle.elapsed().as_millis());
         }
     }
 }

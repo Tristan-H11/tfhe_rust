@@ -101,7 +101,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     );
     println!("[Server, {}ms] CU erstellt.", start_time.elapsed().as_millis());
 
-    control_unit.start(13);
+    control_unit.start(ram_size as u8);
 
     let start_time = Instant::now();
     let serialized_result = bincode::serialize(&control_unit.get_ram())?;

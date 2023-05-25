@@ -1,7 +1,7 @@
 use std::time::Instant;
 
 use rayon::prelude::*;
-use tfhe::{FheUint8, set_server_key};
+use tfhe::{FheUint8};
 use tfhe::prelude::*;
 
 /// Darstellung des RAMs über einen Vector

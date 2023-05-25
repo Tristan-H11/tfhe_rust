@@ -31,6 +31,11 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
     let cloned_key = server_key.clone();
     set_server_key(server_key);
+
+    // There is a race condition when using set_server_key inside of rayon-threads.
+    // This race condition is introduced by the way rayon uses work stealing
+    // So this workaround casts the key onto the global rayon-threadpool and thus, it can't race anymore.
+    rayon::broadcast(|_| set_server_key(cloned_key.clone()));
     println!("[Server, {}ms] ServerKey eingelesen und gesetzt.", start_time.elapsed().as_millis());
 
     let start_time = Instant::now();

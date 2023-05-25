@@ -38,7 +38,6 @@ impl ControlUnit {
             zero_initializer.clone(),
             program_data,
             ram_size,
-            server_key.clone(),
         );
 
         ControlUnit {

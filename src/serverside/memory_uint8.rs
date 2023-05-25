@@ -1,8 +1,7 @@
-use std::cmp::{max};
-use std::thread;
-use std::thread::JoinHandle;
 use std::time::Instant;
-use tfhe::{FheUint8, ServerKey, set_server_key};
+
+use rayon::prelude::*;
+use tfhe::{FheUint8, set_server_key};
 use tfhe::prelude::*;
 
 /// Darstellung des RAMs über einen Vector
@@ -11,19 +10,16 @@ use tfhe::prelude::*;
 pub struct MemoryUint8 {
     data: Vec<(FheUint8, FheUint8)>,
     accu: FheUint8,
-    key: ServerKey,
 }
-
 impl MemoryUint8 {
     /// Erstellt den RAM und Accu mit den übergebenen Daten. Der Vektor darf maximal 8 bit Adressbreite haben und muss
     /// jede unbeschriebene Zelle mit 8 gefüllt haben. (Also exakt 256 Elemente lang sein)
-    pub fn new(zero_initializer: FheUint8, data: Vec<(FheUint8, FheUint8)>, size: usize, key: ServerKey) -> MemoryUint8 {
+    pub fn new(zero_initializer: FheUint8, data: Vec<(FheUint8, FheUint8)>, size: usize) -> MemoryUint8 {
         println!("[RAM] new() gestartet.");
         assert_eq!(data.len(), size);
         MemoryUint8 {
             data,
             accu: zero_initializer.clone(),
-            key,
         }
     }
 
@@ -59,43 +55,23 @@ impl MemoryUint8 {
                 FheUint8::try_encrypt_trivial(0 as u8).unwrap()
             );
 
-        let mut threads: Vec<JoinHandle<(FheUint8, FheUint8)>> = vec![];
-        let thread_count: usize = 4;
-        let chunk_size = max(thread_count, self.data.len() / thread_count);
+        result = self.data.par_iter()
+            .enumerate()
+            .map(|(current_index, (first, second))| {
+                let address = address.clone();
 
-        let chunks = self.data.chunks(chunk_size);
+                let encrypted_index: FheUint8 = FheUint8::try_encrypt_trivial(current_index as u8).unwrap();
+                let condition: &FheUint8 = &address.eq(&encrypted_index);
 
-        for (chunk_number, chunk) in chunks.enumerate() {
-            let chunk: Vec<(FheUint8, FheUint8)> = chunk.to_vec(); // Kopieren des Chunks, damit es threadsicher ist
-            let mut result = result.clone();
-            let address = address.clone();
-            let key = self.key.clone();
-            let chunk_number = chunk_number.clone();
-            let chunk_size = chunk_size.clone();
-            threads.push(
-                thread::spawn(move || {
-                    set_server_key(key);
-                    for (chunk_index, (first, second)) in chunk.iter().enumerate() {
-                        let current_index: u8 = (chunk_number * chunk_size + chunk_index) as u8;
-                        let encrypted_index: FheUint8 = FheUint8::try_encrypt_trivial(current_index).unwrap();
-
-                        // Adresse vergleichen
-                        let condition: FheUint8 = address.eq(&encrypted_index);
-                        // Opcode setzen
-                        result.0 += first * &condition;
-                        // Operand setzen
-                        result.1 += second * &condition;
-                    }
-                    result
-                })
-            );
-        }
-
-        for thread in threads {
-            let thread_result = thread.join().unwrap();
-            result.0 += thread_result.0;
-            result.1 += thread_result.1;
-        }
+                let result: (FheUint8, FheUint8) = (
+                    result.0.clone() + first * condition,
+                    result.1.clone() + second * condition,
+                );
+                result
+            })
+            .reduce_with(|a: (FheUint8, FheUint8), b: (FheUint8, FheUint8)| {
+                (a.0 + b.0, a.1 + b.1)
+            }).unwrap_or(result);
 
         println!("[RAM, {}ms] Lesen des RAMs beendet.", start_time.elapsed().as_millis());
         result
@@ -107,42 +83,18 @@ impl MemoryUint8 {
         let start_time = Instant::now();
         let one: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
 
-        let thread_count: usize = 4;
-        let chunk_size = max(thread_count, self.data.len() / thread_count);
-
-        let chunks = self.data.chunks(chunk_size);
-        let mut handles: Vec<JoinHandle<Vec<(FheUint8, FheUint8)>>> = vec![];
-
-        for (i, chunk) in chunks.into_iter().enumerate() {
-            let address = address.clone();
+        self.data.par_iter_mut().enumerate().for_each(|(index, field)| {
             let new_value = new_value.clone();
             let is_write = is_write.clone();
             let one = one.clone();
-            let mut result = chunk.to_vec();
-            let key = self.key.clone();
+            let address = address.clone();
 
-            handles.push(thread::spawn(move || {
-                set_server_key(key);
-                for (j, field) in result.iter_mut().enumerate() {
-                    let index: u8 = (i * chunk_size + j) as u8;
-                    let encrypted_index: FheUint8 = FheUint8::try_encrypt_trivial(index).unwrap();
+            let encrypted_index: FheUint8 = FheUint8::try_encrypt_trivial(index as u8).unwrap();
+            let condition: FheUint8 = address.eq(&encrypted_index) * &is_write;
+            let not_condition: FheUint8 = &one - &condition;
 
-                    let condition: FheUint8 = address.eq(&encrypted_index) * &is_write;
-                    let not_condition: FheUint8 = &one - &condition;
-
-                    field.1 = (condition * new_value.clone()) + (not_condition * field.1.clone());
-                }
-                result
-            }));
-        }
-
-        // Die veränderten Chunks von allen Threads sammeln und zusammenfassen
-        let mut new_data = Vec::new();
-        for handle in handles {
-            let chunk_result = handle.join().unwrap();
-            new_data.extend(chunk_result);
-        }
-        self.data = new_data;
+            field.1 = (condition * new_value.clone()) + (not_condition * field.1.clone());
+        });
 
         println!("[RAM, {}ms] Schreiben des RAMs beendet.", start_time.elapsed().as_millis());
     }

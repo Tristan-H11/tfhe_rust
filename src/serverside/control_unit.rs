@@ -31,7 +31,6 @@ impl ControlUnit {
             zero_flag: zero_initializer.clone(),
             overflow_flag: zero_initializer.clone(),
             carry_flag: zero_initializer.clone(),
-            server_key: server_key.clone(),
         };
 
         let memory = MemoryUint8::new(

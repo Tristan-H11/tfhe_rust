@@ -251,21 +251,21 @@ Jede Operation ist mit unmittelbarer und mit direkter Adressierung vorhanden.
 Ausführungszeiten in Millisekunden der einzelnen Schritte auf unterschiedlichen Prozessoren mit der `--release` Option.
 Es werden 10 Zyklen durchlaufen und der RAM ist entsprechend auch 10 Zeilen groß.
 
-| Schritt                                   | Apple M2 (Macbook Air) **ALT** | Ryzen 5 3600 | Ryzen 5 3600 (Ein Kern) |
-|-------------------------------------------|:------------------------------:|:------------:|:-----------------------:|
-| Client Ausführung                         |             639 ms             |   1'320 ms   |           --            |
-| Server Ausführung                         |           265'928 ms           |  274'627 ms  |           --            |
-| Verify Ausführung                         |             <1 ms              |     1 ms     |           --            |
-|                                           |                                |              |                         |
-| Ganzer CPU Zyklus                         |           24'600 ms            |  26'500 ms   |       138'300 ms        |
-| RAM lesen                                 |            5'200 ms            |   5'800 ms   |        34'400 ms        |
-| RAM schreiben                             |            6'500 ms            |   6'200 ms   |        40'000 ms        |
-| Operand und Accu auslesen                 |            5'300 ms            |   5'800 ms   |        34'600 ms        |
-| IsWriteAccu und IsWriteRam auswerten      |            1'300 ms            |   1'700 ms   |        5'700 ms         |
-| Operand (absolut / direkt adr.) auswerten |            6'600 ms            |   7'500 ms   |        37'100 ms        |
-| ALU Berechnung                            |            3'800 ms            |   4'300 ms   |        16'200 ms        |
-| Akkumulator bestimmen und schreiben       |            1'100 ms            |   1'400 ms   |        4'600 ms         |
-| ProgramCounter bestimmen und schreiben    |            1'100 ms            |   1'300 ms   |        46'000 ms        |
+| Schritt                                   |    Apple M2 (Macbook Air)     | Ryzen 5 3600 | Ryzen 5 3600 (Ein Kern) |
+|-------------------------------------------|:-----------------------------:|:------------:|:-----------------------:|
+| Client Ausführung                         |            639 ms             |   1'320 ms   |           --            |
+| Server Ausführung                         |          254'928 ms           |  274'627 ms  |           --            |
+| Verify Ausführung                         |             <1 ms             |     1 ms     |           --            |
+|                                           |                               |              |                         |
+| Ganzer CPU Zyklus                         |           23'900 ms           |  26'500 ms   |       138'300 ms        |
+| RAM lesen                                 |           5'300 ms            |   5'800 ms   |        34'400 ms        |
+| RAM schreiben                             |           5'900 ms            |   6'200 ms   |        40'000 ms        |
+| Operand und Accu auslesen                 |           5'300 ms            |   5'800 ms   |        34'600 ms        |
+| IsWriteAccu und IsWriteRam auswerten      |           1'300 ms            |   1'700 ms   |        5'700 ms         |
+| Operand (absolut / direkt adr.) auswerten |           6'500 ms            |   7'500 ms   |        37'100 ms        |
+| ALU Berechnung                            |           3'600 ms            |   4'300 ms   |        16'200 ms        |
+| Akkumulator bestimmen und schreiben       |           1'100 ms            |   1'400 ms   |        4'600 ms         |
+| ProgramCounter bestimmen und schreiben    |           1'000 ms            |   1'300 ms   |        46'000 ms        |
 
 Hier ist deutlich zu sehen, dass alle Operationen, die Zugriff auf den RAM ausüben, am deutlich längsten brauchen.
 Die Zeit, die ein RAM Zugriff (lesend oder schreibend) benötigt, steigt linear mit der Größe des RAM an.

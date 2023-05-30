@@ -3,10 +3,6 @@
 // Befehl verglichen werden muss. Somit müssen die OpCodes nicht trivial verschlüsselt werden.
 
 // Setzen der OpCodes
-/*
-ALU Befehle enden auf 0.
-Nicht-ALU Befehl enden auf 1.
- */
 pub static ALU_ADD: u8  = 1; // Addition
 pub static ALU_OR: u8   = 2; // Bitwise Or
 pub static ALU_AND: u8  = 3; // Bitwise And

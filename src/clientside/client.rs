@@ -3,8 +3,8 @@ use std::fs::File;
 use std::io::Write;
 
 use bincode;
-use tfhe::{ConfigBuilder, FheUint8, generate_keys};
 use tfhe::prelude::*;
+use tfhe::{generate_keys, ConfigBuilder, FheUint8};
 
 use crate::clientside::statics::*;
 
@@ -29,14 +29,12 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let mut file = File::create("server_key.bin")?;
     file.write_all(serialized_server_key.as_slice())?;
 
-
     // ClientKey speichern
     let mut serialized_private_key = Vec::new();
     bincode::serialize_into(&mut serialized_private_key, &client_key)?;
 
     let mut file = File::create("private_key.bin")?;
     file.write_all(serialized_private_key.as_slice())?;
-
 
     // Daten speichern
     let configuration_data: Vec<u8> = vec![
@@ -75,24 +73,28 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     ];
 
     // Alle Werte im Vector verschlüsseln und serialiseren
-    let encrypted_configuration_data: Vec<FheUint8> = configuration_data.iter()
+    let encrypted_configuration_data: Vec<FheUint8> = configuration_data
+        .iter()
         .map(|&x: &u8| FheUint8::encrypt(x, &client_key))
         .collect();
 
     let mut serialized_configuration_data = Vec::new();
-    bincode::serialize_into(&mut serialized_configuration_data, &encrypted_configuration_data)?;
+    bincode::serialize_into(
+        &mut serialized_configuration_data,
+        &encrypted_configuration_data,
+    )?;
 
     let mut file = File::create("config_data.bin")?;
     file.write_all(serialized_configuration_data.as_slice())?;
 
-
-    let encrypted_program_data: Vec<(FheUint8, FheUint8)> = program_data.iter()
-        .map(|&(x, y): &(u8, u8)|
+    let encrypted_program_data: Vec<(FheUint8, FheUint8)> = program_data
+        .iter()
+        .map(|&(x, y): &(u8, u8)| {
             (
                 FheUint8::encrypt(x, &client_key),
-                FheUint8::encrypt(y, &client_key)
+                FheUint8::encrypt(y, &client_key),
             )
-        )
+        })
         .collect();
 
     let mut serialized_program_data = Vec::new();

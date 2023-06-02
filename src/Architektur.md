@@ -16,7 +16,7 @@ Jede Leseanfrage, welche über die `x`-te Zeile des RAM hinaus geht, **liefert e
 Jede Schreibanfrage, welche über die `x`-te Zeile des RAM hinaus geht, wird den RAM **nicht** verändern.
 
 | Zeile | Command | Operand | Tupel im RAM             |
-|-------|---------|---------|--------------------------|
+| ----- | ------- | ------- | ------------------------ |
 | 0     | LOAD    | 3       | `(0000_1101, 0000_0011)` |
 | 1     | SUB     | 1       | `(0000_0101, 0000_0001)` |
 | 2     | SAVE    | 0       | `(0000_1111, 0000_0000)` |
@@ -181,7 +181,7 @@ accu,
 is_alu_command // muss übergeben werden, damit die Flags in der Alu korrekt gesetzt werden
 );
 
-// Auswerten und schreiben des (ggf. neuen) Akkumulatorwertes 
+// Auswerten und schreiben des (ggf. neuen) Akkumulatorwertes
 let possible_new_accu_value: u8 = alu_result * is_alu_command + calculation_data * is_load_command;
 memory.write_accu(possible_new_accu_value, is_write_accu);
 ```
@@ -214,7 +214,7 @@ Die Arithmetik-Befehle führen Berechnungen auf dem Akkumulator aus.
 Jede Operation ist mit unmittelbarer und mit direkter Adressierung vorhanden.
 
 | Befehl | Instruction         | Legende       | Beschreibung                                              |
-|--------|---------------------|---------------|-----------------------------------------------------------|
+| ------ | ------------------- | ------------- | --------------------------------------------------------- |
 | ADD    | `(00001)(XXXXXXXX)` | X = Konstante | Addiert die Konstante auf den Akkumulator.                |
 | OR     | `(00010)(XXXXXXXX)` | X = Konstante | Ver-odert die Konstante auf den Akkumulator.              |
 | AND    | `(00011)(XXXXXXXX)` | X = Konstante | Ver-undet die Konstante auf den Akkumulator.              |
@@ -232,7 +232,7 @@ Jede Operation ist mit unmittelbarer und mit direkter Adressierung vorhanden.
 ### Transport-Befehle
 
 | Befehl | Instruction         | Legende       | Beschreibung                                      |
-|--------|---------------------|---------------|---------------------------------------------------|
+| ------ | ------------------- | ------------- | ------------------------------------------------- |
 | LOAD   | `(01101)(XXXXXXXX)` | X = Konstante | Lädt den Wert X in den Akkumulator.               |
 | LOAD_R | `(01110)(XXXXXXXX)` | X = RAM-Adr   | Lädt den Wert von RAM-Adr X in den Akkumulator.   |
 | SAVE   | `(01111)(XXXXXXXX)` | X = RAM-Adr   | Speichert den Akkumulatorwert an die RAM-Adresse. |
@@ -240,7 +240,7 @@ Jede Operation ist mit unmittelbarer und mit direkter Adressierung vorhanden.
 ### Programmfluss-Befehle
 
 | Befehl | Instruction         | Legende       | Beschreibung                                              |
-|--------|---------------------|---------------|-----------------------------------------------------------|
+| ------ | ------------------- | ------------- | --------------------------------------------------------- |
 | JNZ    | `(10000)(XXXXXXXX)` | X = Konstante | Setzt den PC auf X, wenn das Zero Flag nicht gesetzt ist. |
 | JMP    | `(10001)(XXXXXXXX)` | X = Konstante | Setzt den PC auf X.                                       |
 
@@ -251,21 +251,21 @@ Jede Operation ist mit unmittelbarer und mit direkter Adressierung vorhanden.
 Ausführungszeiten in Millisekunden der einzelnen Schritte auf unterschiedlichen Prozessoren mit der `--release` Option.
 Es werden 10 Zyklen durchlaufen und der RAM ist entsprechend auch 10 Zeilen groß.
 
-| Schritt                                   |    Apple M2 (Macbook Air)     | Ryzen 5 3600 | Ryzen 5 3600 (Ein Kern) |
-|-------------------------------------------|:-----------------------------:|:------------:|:-----------------------:|
-| Client Ausführung                         |            639 ms             |   1'320 ms   |           --            |
-| Server Ausführung                         |          254'928 ms           |  274'627 ms  |           --            |
-| Verify Ausführung                         |             <1 ms             |     1 ms     |           --            |
-|                                           |                               |              |                         |
-| Ganzer CPU Zyklus                         |           23'900 ms           |  26'500 ms   |       138'300 ms        |
-| RAM lesen                                 |           5'300 ms            |   5'800 ms   |        34'400 ms        |
-| RAM schreiben                             |           5'900 ms            |   6'200 ms   |        40'000 ms        |
-| Operand und Accu auslesen                 |           5'300 ms            |   5'800 ms   |        34'600 ms        |
-| IsWriteAccu und IsWriteRam auswerten      |           1'300 ms            |   1'700 ms   |        5'700 ms         |
-| Operand (absolut / direkt adr.) auswerten |           6'500 ms            |   7'500 ms   |        37'100 ms        |
-| ALU Berechnung                            |           3'600 ms            |   4'300 ms   |        16'200 ms        |
-| Akkumulator bestimmen und schreiben       |           1'100 ms            |   1'400 ms   |        4'600 ms         |
-| ProgramCounter bestimmen und schreiben    |           1'000 ms            |   1'300 ms   |        46'000 ms        |
+| Schritt                                   | Apple M2 (Macbook Air) | Ryzen 5 3600 | Ryzen 5 3600 (Ein Kern) | i7-11700KF |
+| ----------------------------------------- | :--------------------: | :----------: | :---------------------: | :--------: |
+| Client Ausführung                         |         639 ms         |   1'320 ms   |           --            |   842 ms   |
+| Server Ausführung                         |       254'928 ms       |  274'627 ms  |           --            | 186'768 ms |
+| Verify Ausführung                         |         <1 ms          |     1 ms     |           --            |    3 ms    |
+|                                           |                        |              |                         |            |
+| Ganzer CPU Zyklus                         |       23'900 ms        |  26'500 ms   |       138'300 ms        | 17'200 ms  |
+| RAM lesen                                 |        5'300 ms        |   5'800 ms   |        34'400 ms        |  3'600 ms  |
+| RAM schreiben                             |        5'900 ms        |   6'200 ms   |        40'000 ms        |  3'900 ms  |
+| Operand und Accu auslesen                 |        5'300 ms        |   5'800 ms   |        34'600 ms        |  3'800 ms  |
+| IsWriteAccu und IsWriteRam auswerten      |        1'300 ms        |   1'700 ms   |        5'700 ms         |  1'200 ms  |
+| Operand (absolut / direkt adr.) auswerten |        6'500 ms        |   7'500 ms   |        37'100 ms        |  4'600 ms  |
+| ALU Berechnung                            |        3'600 ms        |   4'300 ms   |        16'200 ms        |  2'900 ms  |
+| Akkumulator bestimmen und schreiben       |        1'100 ms        |   1'400 ms   |        4'600 ms         |   900 ms   |
+| ProgramCounter bestimmen und schreiben    |        1'000 ms        |   1'300 ms   |        46'000 ms        |   900 ms   |
 
 Hier ist deutlich zu sehen, dass alle Operationen, die Zugriff auf den RAM ausüben, am deutlich längsten brauchen.
 Die Zeit, die ein RAM Zugriff (lesend oder schreibend) benötigt, steigt linear mit der Größe des RAM an.
@@ -313,6 +313,7 @@ N und N-1 durch die entsprechenden Werte wie 3 und 2 ersetzen.
 
 Es werden ADD, OR, AND, XOR, SUB und MUl mit unmittelbaren Operanden getestet.
 Die ersten 6 Zellen des RAM sollten die Werte `[3,7,4,6,1,0]` aufweisen.
+
 ```rust
 (LOAD, 2),
 (ALU_ADD, 1),
@@ -333,6 +334,7 @@ Die ersten 6 Zellen des RAM sollten die Werte `[3,7,4,6,1,0]` aufweisen.
 
 Es werden ADD, OR, AND, XOR, SUB und MUl mit direkt-adressierten Operanden getestet.
 Die ersten 6 Zellen des RAM sollten die Werte `[4,4,0,4,3,12]` aufweisen.
+
 ```rust
 (LOAD, 2),
 (ALU_ADD_R, 0),

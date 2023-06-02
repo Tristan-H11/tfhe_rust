@@ -7,10 +7,10 @@ edition = "2021"
 
 [dependencies]
 # Windows
-#tfhe = { git = "https://github.com/zama-ai/tfhe-rs.git", rev = "20d0e81bae531cbf6e0dfd7c8a9c20427b31c575", features = ["integer", "x86_64"] }
+tfhe = { git = "https://github.com/zama-ai/tfhe-rs.git", rev = "20d0e81bae531cbf6e0dfd7c8a9c20427b31c575", features = ["integer", "x86_64"] }
 
 #MacOS
-tfhe = { git = "https://github.com/zama-ai/tfhe-rs.git", rev = "20d0e81bae531cbf6e0dfd7c8a9c20427b31c575", features = ["integer", "aarch64-unix"] }
+#tfhe = { git = "https://github.com/zama-ai/tfhe-rs.git", rev = "20d0e81bae531cbf6e0dfd7c8a9c20427b31c575", features = ["integer", "aarch64-unix"] }
 
 
 bincode = "1.3.3"

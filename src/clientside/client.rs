@@ -14,8 +14,7 @@ use crate::clientside::statics::*;
 /// - die Schlüssel erstellt,
 /// - die Schlüssel serialisiert,
 /// - die Maschinensprache konfiguriert,
-/// - die OpCodes der Maschinensprache verschlüsselt und serialisiert,
-/// - die Operanden und der OpCode für die Alu verschlüsselt und serialisiert. (Das wird sich demnächst ändern, wenn die CU gebaut wird)
+/// - das auszuführende Programm wird verschlüsselt und serialisiert.
 pub fn start() -> Result<(), Box<dyn Error>> {
     let config = ConfigBuilder::all_disabled()
         .enable_default_integers()
@@ -36,7 +35,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let mut file = File::create("private_key.bin")?;
     file.write_all(serialized_private_key.as_slice())?;
 
-    // Daten speichern
+    // Maschinensprach-Konfiguration speichern
     let configuration_data: Vec<u8> = vec![
         ALU_ADD,
         ALU_OR,

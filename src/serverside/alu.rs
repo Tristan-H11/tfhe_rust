@@ -21,11 +21,13 @@ pub struct Alu {
 
 impl Alu {
     /// Berechnet Anhang des übergebenen OpCodes das Ergebnis der beiden Operanden.
-    /// Die Berechnung verfolgt ohne Verzweigung über die folgende Logik:
+    /// Die Berechnung verfolgt ohne Verzweigung über die folgende Logik (mit add, and, or & xor dargestellt):
     /// `result = (add_result * op_code.eq(opcode_add)) + (and_result * op_code.eq(opcode_and)) + (or_result * op_code.eq(opcode_or)) + (xor_result * op_code.eq(opcode_xor))`
-    ///
+    ///<br><br>
+    /// Aktuell berechnet die Alu `ADD`, `AND`, `OR`, `XOR`, `SUB` und `MUL`.
+    /// <br><br>
     /// Soweit alle OpCodes richtig gesetzt sind und ein zulässiger op_code übergeben wird, wird immer ein Ergebnis berechnet.
-    /// Sollten OpCodes falsch gesetzt sein, kann fälschlicherweise `0` berechnet werden.
+    /// Sollten OpCodes falsch gesetzt sein oder ein ungültiger Opcode übergeben werden, kann fälschlicherweise `0` berechnet werden.
     pub fn calculate(&mut self, op_code: &FheUint8, operand: &FheUint8, accu: &FheUint8, is_alu_command: &FheUint8) -> FheUint8 {
         let start_time = Instant::now();
 
@@ -42,7 +44,7 @@ impl Alu {
                 (&operand + &accu) * is_addition + (operand & accu) * is_and
             },
             // Hier muss ein bisschen geschummelt werden, weil ein Join nur zwei Rückgabetypen akzeptiert.
-            // Deshalb ist es ein geschachteltes Join
+            // Deshalb ist es ein geschachteltes Join und der zweite Eintrag des Ergebnisses ist selber ein Tupel
             || {
                 rayon::join(
                     || {
@@ -91,7 +93,7 @@ impl Alu {
 
     /// Wenn die beiden MSB's ver-xort werden und dieses Ergebnis ungleich dem Ergebnis MSB ist,
     /// dann gab es einen Carry an vorletzter Stelle, also einen Overflow. <br>
-    /// Overflow = (A_msb ^ B_msb) ^ Result_msb
+    /// `Overflow = (A_msb ^ B_msb) ^ Result_msb`
     fn calculate_overflow(&mut self, a: &FheUint8, b: &FheUint8, result: &FheUint8) -> FheUint8 {
         let negate_mask: &FheUint8 = &FheUint8::try_encrypt_trivial(0b0000_0001 as u8).unwrap();
         let msb_mask: &FheUint8 = &FheUint8::try_encrypt_trivial(0b1000_0000 as u8).unwrap();
@@ -106,8 +108,8 @@ impl Alu {
     }
 
     /// Ein Carry im letzten Bit gibt es, wenn die MSB der beiden Operanden ungleich sind UND es einen overflow gab
-    /// ODER wenn die beiden MSB ver-undet 1 ergeben.
-    /// Carry = (((A_msb ^ B_msb).eq(msb_mask) & self.overflow_flag) | (A_msb.eq(B_msb)
+    /// ODER wenn die beiden MSB ver-undet 1 ergeben. <br>
+    /// `Carry = (((A_msb ^ B_msb).eq(msb_mask) & self.overflow_flag) | (A_msb.eq(B_msb)`
     fn calculate_carry(&mut self, a: &FheUint8, b: &FheUint8) -> FheUint8 {
         let msb_mask: &FheUint8 = &FheUint8::try_encrypt_trivial(0b1000_0000 as u8).unwrap();
         let masked_a: FheUint8 = a & msb_mask;

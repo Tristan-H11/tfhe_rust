@@ -54,9 +54,9 @@ Das Lesen des RAMs geschieht wie folgt:
 let mut result: (u8, u8) = (0, 0)
 
 for (index, tuple) in memory.enumerate() {          // Durch den gesamten RAM iterieren
-let condition: u8 = (target_index == index);    // Prüfen, ob die aktuelle Zeile die Zielzeile ist
-result.0 = result.0 + (& tuple.0 * & condition);  // Command schreiben schreiben
-result.1 = result.1 + ( & tuple.1 * & condition);  // Operand schreiben
+    let condition: u8 = (target_index == index);    // Prüfen, ob die aktuelle Zeile die Zielzeile ist
+    result.0 = result.0 + (& tuple.0 * & condition);  // Command schreiben schreiben
+    result.1 = result.1 + ( & tuple.1 * & condition);  // Operand schreiben
 }
 return result
 ```
@@ -68,10 +68,10 @@ Das Lesen des RAMs geschieht wie folgt:
 ```rust
 for (index, tuple) in self .data.enumerate() {
 
-let condition: u8 = (target_index == index) * is_write;         // Prüfen, ob der neue Wert geschrieben werden soll
-let not_condition: u8 = ! condition;
-
-tuple.1 = (condition * new_value) + (not_condition * tuple.1);  // Schreiben des RAM-Wertes
+    let condition: u8 = (target_index == index) * is_write;         // Prüfen, ob der neue Wert geschrieben werden soll
+    let not_condition: u8 = ! condition;
+    
+    tuple.1 = (condition * new_value) + (not_condition * tuple.1);  // Schreiben des RAM-Wertes
 }
 ```
 
@@ -138,7 +138,7 @@ Die nachfolgenden Schritte werden jeden Zyklus ausgeführt:
 Der RAM-Inhalt und der Akkumulator wird in die CU geladen:
 
 ```rust
-    let memory_cell: (u8, u8) = memory.read_from_ram(program_counter);
+let memory_cell: (u8, u8) = memory.read_from_ram(program_counter);
 let opcode: u8 = memory_cell.0;
 let operand: u8 = memory_cell.1;
 let accu: u8 = memory.get_accu();
@@ -149,7 +149,7 @@ let accu: u8 = memory.get_accu();
 Die entsprechenden Conditions für `is_alu_command`, `is_load_command`, etc. ausgewertet:
 
 ```rust
-    let is_alu_command: u8 = opcodes.is_alu_command(opcode);
+let is_alu_command: u8 = opcodes.is_alu_command(opcode);
 let is_load_command: u8 = opcodes.is_load_command(opcode);
 let is_write_accu: u8 = is_alu_command | is_load_command;
 let is_write_ram: u8 = opcodes.is_write_to_ram(opcode);
@@ -164,9 +164,9 @@ Die möglichen Operationen (Berechnen, Laden, Speichern) werden unter den jeweil
 ```rust
     // Schreiben des RAM-Wertes, falls es ein Schreibbefehl ist
 memory.write_to_ram(
-operand,
-accu,
-is_write_ram,
+    operand,
+    accu,
+    is_write_ram,
 );
 
 // Auslesen des RAM-Wertes, falls es sich um eine direkte Adressierung handelt und setzen des Datums für die weitere Aktionen
@@ -175,10 +175,10 @@ let calculation_data: u8 = operand * ( ! has_to_load_operand_from_ram) + ram_val
 
 // Bestimmen des möglichen ALU-Ergebnisses
 let alu_result: u8 = alu.calculate(
-opcode,
-calculation_data,
-accu,
-is_alu_command // muss übergeben werden, damit die Flags in der Alu korrekt gesetzt werden
+    opcode,
+    calculation_data,
+    accu,
+    is_alu_command // muss übergeben werden, damit die Flags in der Alu korrekt gesetzt werden
 );
 
 // Auswerten und schreiben des (ggf. neuen) Akkumulatorwertes
@@ -192,7 +192,7 @@ Hier wird der ProgrammCounter gesetzt. Entweder wird er inkrementiert oder durch
 nur `jump if not zero`) neu gesetzt:
 
 ```rust
-    let incremented_pc: u8 = program_counter + 1;
+let incremented_pc: u8 = program_counter + 1;
 let jnz_condition: u8 = alu.zero_flag * is_jump;
 self .program_counter = incremented_pc * ! is_jump + operand * jnz_condition;
 ```
@@ -278,7 +278,7 @@ Die Zeiten sind alle aus dem je schnellsten CPU-Zyklus entnommen.
 ### Fakultät 5 (hardcoded)
 
 ```rust
-    (LOAD, 2),      // Lade 1 in den Akkumulator (Akk = 1)
+(LOAD, 2),      // Lade 1 in den Akkumulator (Akk = 1)
 (LOAD, 3),      // Lade 3 in den Akkumulator (Akk = 3)
 (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 6)
 (SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 6)
@@ -295,7 +295,7 @@ Die Zeiten sind alle aus dem je schnellsten CPU-Zyklus entnommen.
 N und N-1 durch die entsprechenden Werte wie 3 und 2 ersetzen.
 
 ```rust
-    (LOAD, N-1),      // Speicher für den Counter allocaten <-1
+(LOAD, N-1),      // Speicher für den Counter allocaten <-1
 (LOAD, N),      // Initialwert des Ergebnisses <-6
 // Multiplikation
 (LOAD_R, 1),

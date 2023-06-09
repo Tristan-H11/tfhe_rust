@@ -7,7 +7,7 @@ use tfhe::{ClientKey, FheUint8};
 use tfhe::prelude::*;
 
 /// Verify-Main-Funktion.
-/// Hier wird das Ergebnis ausgelesen, entschlüsselt und zur Überprüfung ausgegeben.
+/// Hier wird das Ergebnis (aktuell der gesamte RAM) ausgelesen, entschlüsselt und zur Verifizierung ausgegeben.
 pub fn start() -> Result<(), Box<dyn Error>> {
     // Ergebnis einlesen und deserialisieren
     let mut calculated_result = Vec::new();
@@ -28,7 +28,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     ).collect();
 
     for (i, x) in result_ram.iter().enumerate() {
-        println!("Zeile {}: OpCode {} --- Wert {}", i, x.0, x.1);
+        println!("RAM-Zeile {}: OpCode {} --- Wert {}", i, x.0, x.1);
     }
 
     Ok(())

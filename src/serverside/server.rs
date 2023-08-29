@@ -65,7 +65,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         opcodes_alu,
         load: serialized_configuration_data[12].clone(),
         load_r: serialized_configuration_data[13].clone(),
-        save: serialized_configuration_data[14].clone(),
+        store: serialized_configuration_data[14].clone(),
         jnz: serialized_configuration_data[15].clone()
     };
 

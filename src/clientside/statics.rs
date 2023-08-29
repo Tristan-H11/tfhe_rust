@@ -19,7 +19,7 @@ pub static ALU_MUL_R: u8  = 0b0000_1100; // Multiplication
 
 pub static LOAD: u8     = 0b0000_1101; // Konstante in Accu laden
 pub static LOAD_R: u8   = 0b0000_1110; // Wert von RAM Adr in Accu laden
-pub static SAVE: u8     = 0b0000_1111; // Accu an RAM Adr speichern
+pub static STORE: u8     = 0b0000_1111; // Accu an RAM Adr speichern
 
 pub static JNZ: u8  = 0b0001_0000; // Jump if not zero
 

@@ -19,6 +19,25 @@ pub struct OpcodeContainerAlu {
 }
 
 impl OpcodeContainerAlu {
+    pub(crate) fn new() -> OpcodeContainerAlu {
+        OpcodeContainerAlu{
+            add: FheUint8::try_encrypt_trivial(0b1000_0001u8).unwrap(),
+            or: FheUint8::try_encrypt_trivial(0b1000_0010u8).unwrap(),
+            and: FheUint8::try_encrypt_trivial(0b1000_0011u8).unwrap(),
+            xor: FheUint8::try_encrypt_trivial(0b1000_0100u8).unwrap(),
+            sub: FheUint8::try_encrypt_trivial(0b1000_0101u8).unwrap(),
+            mul: FheUint8::try_encrypt_trivial(0b1000_0110u8).unwrap(),
+            add_r: FheUint8::try_encrypt_trivial(0b1100_0001u8).unwrap(),
+            or_r: FheUint8::try_encrypt_trivial(0b1100_0010u8).unwrap(),
+            and_r: FheUint8::try_encrypt_trivial(0b1100_0011u8).unwrap(),
+            xor_r: FheUint8::try_encrypt_trivial(0b1100_0100u8).unwrap(),
+            sub_r: FheUint8::try_encrypt_trivial(0b1100_0101u8).unwrap(),
+            mul_r: FheUint8::try_encrypt_trivial(0b1100_0110u8).unwrap(),
+        }
+    }
+}
+
+impl OpcodeContainerAlu {
     /// Prüft, ob der OpCode einen ALU-Befehl repräsentiert
     pub fn contains_opcode(&self, opcode: &FheUint8) -> FheUint8 {
         self.is_ram_opcode(opcode)

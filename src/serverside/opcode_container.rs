@@ -1,5 +1,5 @@
 use tfhe::FheUint8;
-use tfhe::prelude::FheEq;
+use tfhe::prelude::*;
 use crate::serverside::opcode_container_alu::OpcodeContainerAlu;
 
 /// Datenstruktur zum Speichern aller Opcodes und ausführen einfacher inhaltlicher Abfragen.
@@ -13,6 +13,18 @@ pub struct OpcodeContainer {
 }
 
 impl OpcodeContainer {
+    
+    pub fn new() -> OpcodeContainer {
+        let opcodes_alu = OpcodeContainerAlu::new();
+        
+        OpcodeContainer{
+            opcodes_alu,
+            load: FheUint8::try_encrypt_trivial(0b0000_0001u8).unwrap(),
+            load_r: FheUint8::try_encrypt_trivial(0b0100_0001u8).unwrap(),
+            store: FheUint8::try_encrypt_trivial(0b0000_0010u8).unwrap(),
+            jnz: FheUint8::try_encrypt_trivial(0b0010_0001u8).unwrap(),
+        }
+    }
     /// Prüft, ob es sich um einen Command handelt, welcher einen Wert aus dem RAM in den Akkumulator laden soll.
     pub fn is_load_command(&self, opcode: &FheUint8) -> FheUint8 {
         opcode.eq(&self.load)

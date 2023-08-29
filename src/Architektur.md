@@ -16,10 +16,10 @@ Jede Leseanfrage, welche über die `x`-te Zeile des RAM hinaus geht, **liefert e
 Jede Schreibanfrage, welche über die `x`-te Zeile des RAM hinaus geht, wird den RAM **nicht** verändern.
 
 | Zeile | Command | Operand | Tupel im RAM             |
-| ----- | ------- | ------- | ------------------------ |
+|-------|---------|---------|--------------------------|
 | 0     | LOAD    | 3       | `(0000_1101, 0000_0011)` |
 | 1     | SUB     | 1       | `(0000_0101, 0000_0001)` |
-| 2     | SAVE    | 0       | `(0000_1111, 0000_0000)` |
+| 2     | STORE   | 0       | `(0000_1111, 0000_0000)` |
 
 ### Arbeitsregister
 
@@ -35,7 +35,7 @@ Wird ein Schreibzugriff auf den RAM gestartet, so wird **nur der rechte Part** d
 Der Command bleibt in beiden Fällen unberührt.
 <br><br>
 In dem obigen Beispiel steht in Zeile 0 eine 3.
-Mit dem Save-Befehl wird nun der Wert des Akkumulators in Zeile 0 geschrieben.
+Mit dem Store-Befehl wird nun der Wert des Akkumulators in Zeile 0 geschrieben.
 Dadurch verändert sich der dort liegende Befehl von `LOAD 3` zu `LOAD 2`.
 Würde dieser Befehl in einer Schleife liegen, würde im nächsten Aufruf von Zeile 0 eine 3, statt einer 2 geladen werden.
 <br>
@@ -54,9 +54,9 @@ Das Lesen des RAMs geschieht wie folgt:
 let mut result: (u8, u8) = (0, 0)
 
 for (index, tuple) in memory.enumerate() {          // Durch den gesamten RAM iterieren
-    let condition: u8 = (target_index == index);    // Prüfen, ob die aktuelle Zeile die Zielzeile ist
-    result.0 = result.0 + (& tuple.0 * & condition);  // Command schreiben schreiben
-    result.1 = result.1 + ( & tuple.1 * & condition);  // Operand schreiben
+let condition: u8 = (target_index == index);    // Prüfen, ob die aktuelle Zeile die Zielzeile ist
+result.0 = result.0 + (& tuple.0 * & condition);  // Command schreiben schreiben
+result.1 = result.1 + ( & tuple.1 * & condition);  // Operand schreiben
 }
 return result
 ```
@@ -68,10 +68,10 @@ Das Lesen des RAMs geschieht wie folgt:
 ```rust
 for (index, tuple) in self .data.enumerate() {
 
-    let condition: u8 = (target_index == index) * is_write;         // Prüfen, ob der neue Wert geschrieben werden soll
-    let not_condition: u8 = ! condition;
-    
-    tuple.1 = (condition * new_value) + (not_condition * tuple.1);  // Schreiben des RAM-Wertes
+let condition: u8 = (target_index == index) * is_write;         // Prüfen, ob der neue Wert geschrieben werden soll
+let not_condition: u8 = ! condition;
+
+tuple.1 = (condition * new_value) + (not_condition * tuple.1);  // Schreiben des RAM-Wertes
 }
 ```
 
@@ -164,9 +164,9 @@ Die möglichen Operationen (Berechnen, Laden, Speichern) werden unter den jeweil
 ```rust
     // Schreiben des RAM-Wertes, falls es ein Schreibbefehl ist
 memory.write_to_ram(
-    operand,
-    accu,
-    is_write_ram,
+operand,
+accu,
+is_write_ram,
 );
 
 // Auslesen des RAM-Wertes, falls es sich um eine direkte Adressierung handelt und setzen des Datums für die weitere Aktionen
@@ -175,10 +175,10 @@ let calculation_data: u8 = operand * ( ! has_to_load_operand_from_ram) + ram_val
 
 // Bestimmen des möglichen ALU-Ergebnisses
 let alu_result: u8 = alu.calculate(
-    opcode,
-    calculation_data,
-    accu,
-    is_alu_command // muss übergeben werden, damit die Flags in der Alu korrekt gesetzt werden
+opcode,
+calculation_data,
+accu,
+is_alu_command // muss übergeben werden, damit die Flags in der Alu korrekt gesetzt werden
 );
 
 // Auswerten und schreiben des (ggf. neuen) Akkumulatorwertes
@@ -208,41 +208,42 @@ PC = ((PC + 1) * !is_jump) + (operand * is_jump)
 Es wird sich grundsätzlich an einer Akkumulator-Architektur orientiert.
 Damit haben Befehle nur keinen oder einen Operanden.
 
+Das MSB ist ein Flag für die ALU, das 2MSB ist ein Flag für einen Befehl mit direkter Addressierung und das 3MSB ist ein Flag für Programmflussbefehle (jump, branch).
 ### Arithmetik-Befehle
 
 Die Arithmetik-Befehle führen Berechnungen auf dem Akkumulator aus.
 Jede Operation ist mit unmittelbarer und mit direkter Adressierung vorhanden.
 
-| Befehl | Instruction         | Legende       | Beschreibung                                              |
-| ------ | ------------------- | ------------- | --------------------------------------------------------- |
-| ADD    | `(00001)(XXXXXXXX)` | X = Konstante | Addiert die Konstante auf den Akkumulator.                |
-| OR     | `(00010)(XXXXXXXX)` | X = Konstante | Ver-odert die Konstante auf den Akkumulator.              |
-| AND    | `(00011)(XXXXXXXX)` | X = Konstante | Ver-undet die Konstante auf den Akkumulator.              |
-| XOR    | `(00100)(XXXXXXXX)` | X = Konstante | Ver-xOdert die Konstante auf den Akkumulator.             |
-| SUB    | `(00101)(XXXXXXXX)` | X = Konstante | Subtrahiert die Konstante von dem Akkumulator.            |
-| MUL    | `(00110)(XXXXXXXX)` | X = Konstante | Multipliziert die Konstante mit dem Akkumulator.          |
-|        |                     |               |                                                           |
-| ADD_R  | `(00111)(XXXXXXXX)` | X = RAM-Adr   | Addiert den Wert von RAM-Adr X auf den Akkumulator.       |
-| OR_R   | `(01000)(XXXXXXXX)` | X = RAM-Adr   | Ver-odert den Wert von RAM-Adr X auf den Akkumulator.     |
-| AND_R  | `(01001)(XXXXXXXX)` | X = RAM-Adr   | Ver-undet den Wert von RAM-Adr X auf den Akkumulator.     |
-| XOR_R  | `(01010)(XXXXXXXX)` | X = RAM-Adr   | Ver-xOdert den Wert von RAM-Adr X auf den Akkumulator.    |
-| SUB_R  | `(01011)(XXXXXXXX)` | X = RAM-Adr   | Subtrahiert den Wert von RAM-Adr X von dem Akkumulator.   |
-| MUL_R  | `(01100)(XXXXXXXX)` | X = RAM-Adr   | Multipliziert den Wert von RAM-Adr X mit dem Akkumulator. |
+| Befehl | Instruction             | Legende       | Beschreibung                                              |
+|--------|-------------------------|---------------|-----------------------------------------------------------|
+| ADD    | `(1000_0001)(XXXXXXXX)` | X = Konstante | Addiert die Konstante auf den Akkumulator.                |
+| OR     | `(1000_0010)(XXXXXXXX)` | X = Konstante | Ver-odert die Konstante auf den Akkumulator.              |
+| AND    | `(1000_0011)(XXXXXXXX)` | X = Konstante | Ver-undet die Konstante auf den Akkumulator.              |
+| XOR    | `(1000_0100)(XXXXXXXX)` | X = Konstante | Ver-xOdert die Konstante auf den Akkumulator.             |
+| SUB    | `(1000_0101)(XXXXXXXX)` | X = Konstante | Subtrahiert die Konstante von dem Akkumulator.            |
+| MUL    | `(1000_0110)(XXXXXXXX)` | X = Konstante | Multipliziert die Konstante mit dem Akkumulator.          |
+|        |                         |               |                                                           |
+| ADD_R  | `(1100_0001)(XXXXXXXX)` | X = RAM-Adr   | Addiert den Wert von RAM-Adr X auf den Akkumulator.       |
+| OR_R   | `(1100_0010)(XXXXXXXX)` | X = RAM-Adr   | Ver-odert den Wert von RAM-Adr X auf den Akkumulator.     |
+| AND_R  | `(1100_0011)(XXXXXXXX)` | X = RAM-Adr   | Ver-undet den Wert von RAM-Adr X auf den Akkumulator.     |
+| XOR_R  | `(1100_0100)(XXXXXXXX)` | X = RAM-Adr   | Ver-xOdert den Wert von RAM-Adr X auf den Akkumulator.    |
+| SUB_R  | `(1100_0101)(XXXXXXXX)` | X = RAM-Adr   | Subtrahiert den Wert von RAM-Adr X von dem Akkumulator.   |
+| MUL_R  | `(1100_0110)(XXXXXXXX)` | X = RAM-Adr   | Multipliziert den Wert von RAM-Adr X mit dem Akkumulator. |
 
 ### Transport-Befehle
 
-| Befehl | Instruction         | Legende       | Beschreibung                                      |
-| ------ | ------------------- | ------------- | ------------------------------------------------- |
-| LOAD   | `(01101)(XXXXXXXX)` | X = Konstante | Lädt den Wert X in den Akkumulator.               |
-| LOAD_R | `(01110)(XXXXXXXX)` | X = RAM-Adr   | Lädt den Wert von RAM-Adr X in den Akkumulator.   |
-| SAVE   | `(01111)(XXXXXXXX)` | X = RAM-Adr   | Speichert den Akkumulatorwert an die RAM-Adresse. |
+| Befehl | Instruction             | Legende       | Beschreibung                                      |
+|--------|-------------------------|---------------|---------------------------------------------------|
+| LOAD   | `(0000_0001)(XXXXXXXX)` | X = Konstante | Lädt den Wert X in den Akkumulator.               |
+| LOAD_R | `(0100_0001)(XXXXXXXX)` | X = RAM-Adr   | Lädt den Wert von RAM-Adr X in den Akkumulator.   |
+| STORE  | `(0000_0010)(XXXXXXXX)` | X = RAM-Adr   | Speichert den Akkumulatorwert an die RAM-Adresse. |
 
 ### Programmfluss-Befehle
 
-| Befehl | Instruction         | Legende       | Beschreibung                                              |
-| ------ | ------------------- | ------------- | --------------------------------------------------------- |
-| JNZ    | `(10000)(XXXXXXXX)` | X = Konstante | Setzt den PC auf X, wenn das Zero Flag nicht gesetzt ist. |
-| JMP    | `(10001)(XXXXXXXX)` | X = Konstante | Setzt den PC auf X.                                       |
+| Befehl | Instruction             | Legende       | Beschreibung                                              |
+|--------|-------------------------|---------------|-----------------------------------------------------------|
+| JNZ    | `(0010_0001)(XXXXXXXX)` | X = Konstante | Setzt den PC auf X, wenn das Zero Flag nicht gesetzt ist. |
+| JMP    | `(TODO)(XXXXXXXX)`      | X = Konstante | Setzt den PC auf X.                                       |
 
 ## Benchmarks
 
@@ -252,7 +253,7 @@ Ausführungszeiten in Millisekunden der einzelnen Schritte auf unterschiedlichen
 Es werden 10 Zyklen durchlaufen und der RAM ist entsprechend auch 10 Zeilen groß.
 
 | Schritt                                   | Apple M2 (Macbook Air) | Ryzen 5 3600 | Ryzen 5 3600 (Ein Kern) | i7-11700KF |
-| ----------------------------------------- | :--------------------: | :----------: | :---------------------: | :--------: |
+|-------------------------------------------|:----------------------:|:------------:|:-----------------------:|:----------:|
 | Client Ausführung                         |         639 ms         |   1'320 ms   |           --            |   842 ms   |
 | Server Ausführung                         |       254'928 ms       |  274'627 ms  |           --            | 186'768 ms |
 | Verify Ausführung                         |         <1 ms          |     1 ms     |           --            |    3 ms    |
@@ -281,13 +282,13 @@ Die Zeiten sind alle aus dem je schnellsten CPU-Zyklus entnommen.
 (LOAD, 2),      // Lade 1 in den Akkumulator (Akk = 1)
 (LOAD, 3),      // Lade 3 in den Akkumulator (Akk = 3)
 (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 6)
-(SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 6)
+(STORE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 6)
 (LOAD, 4),      // Lade 4 in den Akkumulator (Akk = 4)
 (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 24)
-(SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 24)
+(STORE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 24)
 (LOAD, 5),      // Lade 5 in den Akkumulator (Akk = 5)
 (ALU_MUL_R, 0), // Multipliziere Akkumulator mit Wert an RAM Position 0 (Akk = 120)
-(SAVE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 120)
+(STORE, 0),      // Speichere das Ergebnis in RAM Position 0 (RAM[0] = 120)
 ```
 
 ### Fakultät N (iterativ)
@@ -300,11 +301,11 @@ N und N-1 durch die entsprechenden Werte wie 3 und 2 ersetzen.
 // Multiplikation
 (LOAD_R, 1),
 (ALU_MUL_R, 0), // Multiplizieren
-(SAVE, 1),      // Ergebnis zwischenspeichern
+(STORE, 1),      // Ergebnis zwischenspeichern
 // Counter-Dekrement
 (LOAD_R, 0),    // Counter laden
 (ALU_SUB, 1),   // Counter dekrementieren
-(SAVE, 0),      // Counter zwischenspeichern
+(STORE, 0),      // Counter zwischenspeichern
 // Jump
 (JNZ, 2),       // Von vorn, wenn Accu != 0
 ```
@@ -317,17 +318,17 @@ Die ersten 6 Zellen des RAM sollten die Werte `[3,7,4,6,1,0]` aufweisen.
 ```rust
 (LOAD, 2),
 (ALU_ADD, 1),
-(SAVE, 0), // Add in 0 => Erwartet: 3
+(STORE, 0), // Add in 0 => Erwartet: 3
 (ALU_OR, 4),
-(SAVE, 1), // Or in 1 => Erwartet: 7
+(STORE, 1), // Or in 1 => Erwartet: 7
 (ALU_AND, 4),
-(SAVE, 2), // And in 2 => Erwartet: 4
+(STORE, 2), // And in 2 => Erwartet: 4
 (ALU_XOR, 2),
-(SAVE, 3), // XOR in 3 => Erwartet: 6
+(STORE, 3), // XOR in 3 => Erwartet: 6
 (ALU_SUB, 5),
-(SAVE, 4), // SUB in 4 => Erwartet: 1
+(STORE, 4), // SUB in 4 => Erwartet: 1
 (ALU_MUL, 0),
-(SAVE, 5) // MUL in 5 => Erwartet: 0
+(STORE, 5) // MUL in 5 => Erwartet: 0
 ```
 
 ### Testprogramm - direkte Arithmetik
@@ -338,15 +339,15 @@ Die ersten 6 Zellen des RAM sollten die Werte `[4,4,0,4,3,12]` aufweisen.
 ```rust
 (LOAD, 2),
 (ALU_ADD_R, 0),
-(SAVE, 0), // Add in 0 => Erwartet: 4
+(STORE, 0), // Add in 0 => Erwartet: 4
 (ALU_OR_R, 0),
-(SAVE, 1), // Or in 1 => Erwartet: 4
+(STORE, 1), // Or in 1 => Erwartet: 4
 (ALU_AND_R, 4),
-(SAVE, 2), // And in 2 => Erwartet: 0
+(STORE, 2), // And in 2 => Erwartet: 0
 (ALU_XOR_R, 0),
-(SAVE, 3), // XOR in 3 => Erwartet: 4
+(STORE, 3), // XOR in 3 => Erwartet: 4
 (ALU_SUB_R, 4),
-(SAVE, 4), // SUB in 4 => Erwartet: 3
+(STORE, 4), // SUB in 4 => Erwartet: 3
 (ALU_MUL_R, 0),
-(SAVE, 5) // MUL in 5 => Erwartet: 12
+(STORE, 5) // MUL in 5 => Erwartet: 12
 ```

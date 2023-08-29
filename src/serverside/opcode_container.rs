@@ -13,7 +13,7 @@ pub struct OpcodeContainer {
 }
 
 impl OpcodeContainer {
-    
+
     pub fn new() -> OpcodeContainer {
         let opcodes_alu = OpcodeContainerAlu::new();
         
@@ -39,7 +39,8 @@ impl OpcodeContainer {
 
     /// Prüft, ob es sich um einen Command handelt, welcher eine ALU-Berechnung auslösen soll.
     pub fn is_alu_command(&self, opcode: &FheUint8) -> FheUint8 {
-        self.opcodes_alu.contains_opcode(opcode)
+        let alu_mask: &FheUint8 = &FheUint8::try_encrypt_trivial(0b1000_0000u8).unwrap();
+        (opcode & alu_mask).eq(alu_mask)
     }
 
     /// Prüft, ob es sich um einen Command handelt, welcher einen Wert in den RAM schreiben soll.

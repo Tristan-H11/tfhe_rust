@@ -34,7 +34,6 @@ impl ControlUnit {
         };
 
         let memory = MemoryUint8::new(
-            zero_initializer.clone(),
             program_data,
             ram_size,
         );
@@ -55,7 +54,8 @@ impl ControlUnit {
     /// Führt die Fetch, Decode, execute, writeback Zyklen für die übergebene Anzahl an Zyklen aus.
     pub fn start(&mut self, cycles: u8) {
         println!("[ControlUnit] CU gestartet.");
-        let one: &FheUint8 = &FheUint8::try_encrypt_trivial(1 as u8).unwrap();
+        let one: &FheUint8 = &FheUint8::try_encrypt_trivial(1u8).unwrap();
+        let mut accu: FheUint8 = FheUint8::try_encrypt_trivial(0u8).unwrap();
 
         // Weil das Programm im cipherspace nicht terminieren kann, erstmal fixe cycles laufen lassen.
         for i in 1..(cycles+1) {
@@ -66,7 +66,6 @@ impl ControlUnit {
             let memory_cell: (FheUint8, FheUint8) = self.memory.read_from_ram(&self.program_counter);
             let opcode: &FheUint8 = &memory_cell.0;
             let operand: &FheUint8 = &memory_cell.1;
-            let accu: FheUint8 = self.memory.get_accu().clone();
             println!("[ControlUnit, {}ms] Operanden und Accu ausgelesen.", start_time.elapsed().as_millis());
 
             let program_counter_thread = self.calculate_program_counter(one, opcode, operand, self.server_key.clone());
@@ -104,7 +103,9 @@ impl ControlUnit {
 
             let start_time = Instant::now();
             let possible_new_accu_value: FheUint8 = alu_result * is_alu_command + calculation_data.clone() * is_load_command;
-            self.memory.write_accu(&possible_new_accu_value, &is_write_accu);
+            let one: FheUint8 = FheUint8::try_encrypt_trivial(1u8).unwrap();
+            accu = possible_new_accu_value * &is_write_accu + &accu * (one - &is_write_accu);
+
             println!("[ControlUnit, {}ms] Akkumulatorwert bestimmt und geschrieben.", start_time.elapsed().as_millis());
 
             self.program_counter = program_counter_thread.join().unwrap();

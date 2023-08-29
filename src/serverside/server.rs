@@ -5,10 +5,10 @@ use std::time::Instant;
 
 use bincode;
 use tfhe::{FheUint8, ServerKey, set_server_key};
+use tfhe::prelude::FheTryTrivialEncrypt;
 
 use crate::serverside::control_unit::ControlUnit;
 use crate::serverside::opcode_container::OpcodeContainer;
-use crate::serverside::opcode_container_alu::OpcodeContainerAlu;
 
 /// Server-Main-Funktion.
 /// Hier werden:
@@ -38,40 +38,11 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     rayon::broadcast(|_| set_server_key(cloned_key.clone()));
     println!("[Server, {}ms] ServerKey eingelesen und gesetzt.", start_time.elapsed().as_millis());
 
-    let start_time = Instant::now();
     // Daten einlesen
-    let mut configuration_data = Vec::new();
-    let mut file = File::open("config_data.bin")?;
-    file.read_to_end(&mut configuration_data)?;
+    let opcodes: OpcodeContainer = OpcodeContainer::new();
 
-    let serialized_configuration_data: Vec<FheUint8> = bincode::deserialize(&configuration_data)?;
-
-    let opcodes_alu: OpcodeContainerAlu = OpcodeContainerAlu {
-        add: serialized_configuration_data[0].clone(),
-        or: serialized_configuration_data[1].clone(),
-        and: serialized_configuration_data[2].clone(),
-        xor: serialized_configuration_data[3].clone(),
-        sub: serialized_configuration_data[4].clone(),
-        mul: serialized_configuration_data[5].clone(),
-        add_r: serialized_configuration_data[6].clone(),
-        or_r: serialized_configuration_data[7].clone(),
-        and_r: serialized_configuration_data[8].clone(),
-        xor_r: serialized_configuration_data[9].clone(),
-        sub_r: serialized_configuration_data[10].clone(),
-        mul_r: serialized_configuration_data[11].clone(),
-    };
-
-    let opcodes: OpcodeContainer = OpcodeContainer {
-        opcodes_alu,
-        load: serialized_configuration_data[12].clone(),
-        load_r: serialized_configuration_data[13].clone(),
-        store: serialized_configuration_data[14].clone(),
-        jnz: serialized_configuration_data[15].clone()
-    };
-
-    let zero_initializer: FheUint8 = serialized_configuration_data[16].clone();
-    let pc_init_value: FheUint8 = serialized_configuration_data[17].clone();
-    println!("[Server, {}ms] Config eingelesen.", start_time.elapsed().as_millis());
+    let zero_initializer: FheUint8 = FheUint8::try_encrypt_trivial(0u8).unwrap();
+    let pc_init_value: FheUint8 = zero_initializer.clone();
 
     let start_time = Instant::now();
     // Daten einlesen

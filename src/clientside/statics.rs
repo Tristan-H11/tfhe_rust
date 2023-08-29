@@ -25,7 +25,3 @@ pub static LOAD_R: u8   = 0b0100_0001; // Wert von RAM Adr in Accu laden
 pub static STORE: u8     = 0b0000_0010; // Accu an RAM Adr speichern
 
 pub static JNZ: u8  = 0b0010_0001; // Jump if not zero
-
-// Damit der PC und die Flags etc im Server nicht trivial verschlüsselt werden muss
-pub static ZERO_INITIALIZER: u8 = 0;
-pub static PC_INIT_VALUE: u8 = 0;

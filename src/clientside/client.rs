@@ -35,49 +35,12 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let mut file = File::create("private_key.bin")?;
     file.write_all(serialized_private_key.as_slice())?;
 
-    // Maschinensprach-Konfiguration speichern
-    let configuration_data: Vec<u8> = vec![
-        ALU_ADD,
-        ALU_OR,
-        ALU_AND,
-        ALU_XOR,
-        ALU_SUB,
-        ALU_MUL,
-        ALU_ADD_R,
-        ALU_OR_R,
-        ALU_AND_R,
-        ALU_XOR_R,
-        ALU_SUB_R,
-        ALU_MUL_R,
-        LOAD,
-        LOAD_R,
-        STORE,
-        JNZ,
-        ZERO_INITIALIZER,
-        PC_INIT_VALUE,
-    ];
-
     // Die Befehle, die ausgeführt werden sollen
     let program_data: Vec<(u8, u8)> = vec![
         (LOAD, 2),      // Lade 1 in den Akkumulator (Akk = 1)
         (ALU_ADD, 3),
         (STORE, 0)
     ];
-
-    // Alle Werte im Vector verschlüsseln und serialiseren
-    let encrypted_configuration_data: Vec<FheUint8> = configuration_data
-        .iter()
-        .map(|&x: &u8| FheUint8::encrypt(x, &client_key))
-        .collect();
-
-    let mut serialized_configuration_data = Vec::new();
-    bincode::serialize_into(
-        &mut serialized_configuration_data,
-        &encrypted_configuration_data,
-    )?;
-
-    let mut file = File::create("config_data.bin")?;
-    file.write_all(serialized_configuration_data.as_slice())?;
 
     let encrypted_program_data: Vec<(FheUint8, FheUint8)> = program_data
         .iter()

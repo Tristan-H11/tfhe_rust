@@ -16,6 +16,8 @@ pub struct OpcodeContainerAlu {
     pub(crate) xor_r: FheUint8,
     pub(crate) sub_r: FheUint8,
     pub(crate) mul_r: FheUint8,
+    alu_ram_mask: FheUint8,
+    alu_const_mask: FheUint8,
 }
 
 impl OpcodeContainerAlu {
@@ -33,6 +35,8 @@ impl OpcodeContainerAlu {
             xor_r: FheUint8::try_encrypt_trivial(0b1100_0100u8).unwrap(),
             sub_r: FheUint8::try_encrypt_trivial(0b1100_0101u8).unwrap(),
             mul_r: FheUint8::try_encrypt_trivial(0b1100_0110u8).unwrap(),
+            alu_ram_mask: FheUint8::try_encrypt_trivial(0b1100_0000u8).unwrap(),
+            alu_const_mask: FheUint8::try_encrypt_trivial(0b1000_0000u8).unwrap(),
         }
     }
 }
@@ -41,27 +45,20 @@ impl OpcodeContainerAlu {
     /// Prüft, ob der OpCode einen ALU-Befehl repräsentiert
     pub fn contains_opcode(&self, opcode: &FheUint8) -> FheUint8 {
         self.is_ram_opcode(opcode)
-            | self.is_constand_opcode(opcode)
+            | self.is_constant_opcode(opcode)
     }
 
     /// Prüft, ob es sich um einen ALU-Opcode handelt, welcher einen Wert aus dem RAM auslesen muss
     pub fn is_ram_opcode(&self, opcode: &FheUint8) -> FheUint8 {
-        opcode.eq(&self.add_r)
-            | opcode.eq(&self.or_r)
-            | opcode.eq(&self.and_r)
-            | opcode.eq(&self.xor_r)
-            | opcode.eq(&self.sub_r)
-            | opcode.eq(&self.mul_r)
+        (opcode & &self.alu_ram_mask).eq(&self.alu_ram_mask)
     }
 
     /// Prüft, ob es sich um einen ALU-Opcode handelt, welcher einen Wert als Konstante erwartet.
-    pub fn is_constand_opcode(&self, opcode: &FheUint8) -> FheUint8 {
-        opcode.eq(&self.add)
-            | opcode.eq(&self.or)
-            | opcode.eq(&self.and)
-            | opcode.eq(&self.xor)
-            | opcode.eq(&self.sub)
-            | opcode.eq(&self.mul)
+    pub fn is_constant_opcode(&self, opcode: &FheUint8) -> FheUint8 {
+        let one: FheUint8 = FheUint8::try_encrypt_trivial(1u8).unwrap();
+        let msb_equal = (opcode & &self.alu_const_mask).eq(&self.alu_const_mask);
+        let not_ram_flag = one - self.is_ram_opcode(opcode);
+        msb_equal.eq(not_ram_flag) // (Erstes Bit gesetzt) == (zweites Bit nicht gesetzt)
     }
 
     pub fn is_add(&self, opcode: &FheUint8) -> FheUint8 {

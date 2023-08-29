@@ -9,38 +9,21 @@ use tfhe::prelude::*;
 /// Das erste Tupel enthält den Befehl, das zweite den Opernanden.
 pub struct MemoryUint8 {
     data: Vec<(FheUint8, FheUint8)>,
-    accu: FheUint8,
 }
 impl MemoryUint8 {
     /// Erstellt den RAM und Accu mit den übergebenen Daten. Der Vektor darf maximal 8 bit Adressbreite haben und muss
     /// jede unbeschriebene Zelle mit 8 gefüllt haben. (Also exakt 256 Elemente lang sein)
-    pub fn new(zero_initializer: FheUint8, data: Vec<(FheUint8, FheUint8)>, size: usize) -> MemoryUint8 {
+    pub fn new(data: Vec<(FheUint8, FheUint8)>, size: usize) -> MemoryUint8 {
         println!("[RAM] new() gestartet.");
         assert_eq!(data.len(), size);
         MemoryUint8 {
             data,
-            accu: zero_initializer.clone(),
         }
     }
 
     pub fn get_data(&self) -> Vec<(FheUint8, FheUint8)> {
         println!("[RAM] get_data() aufgerufen");
         self.data.clone()
-    }
-
-    /// Liefert den Wert des Akkumulators zurück.
-    pub fn get_accu(&self) -> &FheUint8 {
-        println!("[RAM] get_accu() aufgerufen");
-        &self.accu
-    }
-
-    // Schreibt einen neuen Wert in den Akkumulator
-    pub fn write_accu(&mut self, new_value: &FheUint8, is_write_accu: &FheUint8) {
-        let start_time = Instant::now();
-        let one: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
-
-        self.accu = new_value * is_write_accu + self.get_accu() * (one - is_write_accu);
-        println!("[RAM, {}ms] Schreiben des Akkumulators beendet.", start_time.elapsed().as_millis());
     }
 
     /// Liest einen Wert aus dem RAM, in dem jede Zeile einmal gelesen wird.

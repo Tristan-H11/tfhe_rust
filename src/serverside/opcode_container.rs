@@ -1,6 +1,7 @@
 use crate::serverside::opcode_container_alu::OpcodeContainerAlu;
 use tfhe::prelude::*;
 use tfhe::FheUint8;
+use crate::encrypt_trivial;
 
 /// Datenstruktur zum Speichern aller Opcodes und ausführen einfacher inhaltlicher Abfragen.
 #[derive(Clone)]
@@ -18,10 +19,10 @@ impl OpcodeContainer {
 
         OpcodeContainer {
             opcodes_alu,
-            load: FheUint8::try_encrypt_trivial(0b0000_0001u8).unwrap(),
-            load_r: FheUint8::try_encrypt_trivial(0b0100_0001u8).unwrap(),
-            store: FheUint8::try_encrypt_trivial(0b0000_0010u8).unwrap(),
-            jnz: FheUint8::try_encrypt_trivial(0b0010_0001u8).unwrap(),
+            load: encrypt_trivial!(0b0000_0001u8),
+            load_r: encrypt_trivial!(0b0100_0001u8),
+            store: encrypt_trivial!(0b0000_0010u8),
+            jnz: encrypt_trivial!(0b0010_0001u8),
         }
     }
     /// Prüft, ob es sich um einen Command handelt, welcher einen Wert aus dem RAM in den Akkumulator laden soll.
@@ -36,7 +37,7 @@ impl OpcodeContainer {
 
     /// Prüft, ob es sich um einen Command handelt, welcher eine ALU-Berechnung auslösen soll.
     pub fn is_alu_command(&self, opcode: &FheUint8) -> FheUint8 {
-        let alu_mask: &FheUint8 = &FheUint8::try_encrypt_trivial(0b1000_0000u8).unwrap();
+        let alu_mask: &FheUint8 = &encrypt_trivial!(0b1000_0000u8);
         (opcode & alu_mask).eq(alu_mask)
     }
 

@@ -6,8 +6,10 @@ use bincode;
 use tfhe::prelude::*;
 use tfhe::{ClientKey, FheUint8};
 
-/// Verify-Main-Funktion.
-/// Hier wird das Ergebnis (aktuell der gesamte RAM) ausgelesen, entschlüsselt und zur Verifizierung ausgegeben.
+///
+/// Startet den Verify-Prozess.
+/// Liest die Ergebnisse ein und entschlüsselt sie.
+///
 pub fn start() -> Result<(), Box<dyn Error>> {
     // Ergebnis einlesen und deserialisieren
     let mut calculated_result = Vec::new();

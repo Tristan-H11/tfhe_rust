@@ -3,6 +3,7 @@ use std::time::Instant;
 use rayon::prelude::*;
 use tfhe::prelude::*;
 use tfhe::FheUint8;
+use crate::encrypt_trivial;
 
 /// Darstellung des RAMs über einen Vector
 /// Der Vector enthält in jeder Zelle ein Tupel (u8, u8).
@@ -31,8 +32,8 @@ impl MemoryUint8 {
         let start_time = Instant::now();
 
         let mut result: (FheUint8, FheUint8) = (
-            FheUint8::try_encrypt_trivial(0 as u8).unwrap(),
-            FheUint8::try_encrypt_trivial(0 as u8).unwrap(),
+            encrypt_trivial!(0 as u8),
+            encrypt_trivial!(0 as u8),
         );
 
         result = self
@@ -66,7 +67,7 @@ impl MemoryUint8 {
     /// kein Rückschluss auf die veränderte Zeile gezogen werden kann.
     pub fn write_to_ram(&mut self, address: &FheUint8, new_value: &FheUint8, is_write: &FheUint8) {
         let start_time = Instant::now();
-        let one: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
+        let one: FheUint8 = encrypt_trivial!(1 as u8);
 
         self.data
             .par_iter_mut()

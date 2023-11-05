@@ -8,13 +8,11 @@ use tfhe::{generate_keys, ConfigBuilder, FheUint8};
 
 use crate::clientside::statics::*;
 
-// TODO Docs updaten
-/// Client-Main-Funktion.
-/// Hier werden:
-/// - die Schlüssel erstellt,
-/// - die Schlüssel serialisiert,
-/// - die Maschinensprache konfiguriert,
-/// - das auszuführende Programm wird verschlüsselt und serialisiert.
+///
+/// Startet den Client.
+/// Erzeugt die Schlüssel und speichert sie in Dateien.
+/// Erzeugt die verschlüsselten Daten und speichert sie in Dateien.
+///
 pub fn start() -> Result<(), Box<dyn Error>> {
     let config = ConfigBuilder::all_disabled()
         .enable_default_integers()

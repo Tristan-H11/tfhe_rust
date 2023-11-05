@@ -6,6 +6,7 @@ use std::time::Instant;
 use bincode;
 use tfhe::prelude::FheTryTrivialEncrypt;
 use tfhe::{set_server_key, FheUint8, ServerKey};
+use crate::encrypt_trivial;
 
 use crate::serverside::control_unit::ControlUnit;
 use crate::serverside::opcode_container::OpcodeContainer;
@@ -43,7 +44,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     // Daten einlesen
     let opcodes: OpcodeContainer = OpcodeContainer::new();
 
-    let zero_initializer: FheUint8 = FheUint8::try_encrypt_trivial(0u8).unwrap();
+    let zero_initializer: FheUint8 = encrypt_trivial!(0u8);
     let pc_init_value: FheUint8 = zero_initializer.clone();
 
     let start_time = Instant::now();

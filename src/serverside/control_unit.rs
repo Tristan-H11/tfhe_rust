@@ -3,21 +3,39 @@ use std::thread::JoinHandle;
 use std::time::Instant;
 use tfhe::prelude::*;
 use tfhe::{set_server_key, FheUint8, ServerKey};
+use crate::encrypt_trivial;
 
 use crate::serverside::alu::Alu;
 use crate::serverside::memory_uint8::MemoryUint8;
 use crate::serverside::opcode_container::OpcodeContainer;
 
+///
+/// Darstellung der ControlUnit.
+///
+/// Hält fachlich die Alu, den Speicher und den ProgramCounter.
+///
 pub struct ControlUnit {
     alu: Alu,
     memory: MemoryUint8,
     program_counter: FheUint8,
-    // OP-Codes, damit die unterschiedlichen Modi arithmetisch ausgewertet werden können.
     opcodes: OpcodeContainer,
     server_key: ServerKey,
 }
 
 impl ControlUnit {
+    ///
+    /// Erzeugt eine neue ControlUnit.
+    ///
+    /// # Arguments
+    /// * `opcodes` - Die Opcodes, die die ControlUnit kennen soll.
+    /// * `zero_initializer` - Der Wert, mit dem die Flags initialisiert werden sollen.
+    /// * `pc_init_value` - Der Wert, mit dem der ProgramCounter initialisiert werden soll.
+    /// * `program_data` - Die Daten, die der Speicher initial halten soll.
+    /// * `ram_size` - Die Größe des Speichers.
+    /// * `server_key` - Der Schlüssel, der für die Berechnungen verwendet werden soll.
+    ///
+    /// # Returns
+    /// * Eine neue ControlUnit.
     pub fn new(
         opcodes: OpcodeContainer,
         zero_initializer: FheUint8,
@@ -44,17 +62,24 @@ impl ControlUnit {
         }
     }
 
+    ///
+    /// Gibt den Speicher zurück.
+    ///
     pub fn get_ram(&mut self) -> Vec<(FheUint8, FheUint8)> {
         self.memory.get_data()
     }
 
-    /// Führt die Fetch, Decode, execute, writeback Zyklen für die übergebene Anzahl an Zyklen aus.
+    ///
+    /// Startet die ControlUnit und folglich die gesamte Simulation.
+    ///
+    /// # Arguments
+    /// * `cycles` - Die Anzahl der Zyklen, die die ControlUnit laufen soll.
+    ///
     pub fn start(&mut self, cycles: u8) {
         println!("[ControlUnit] CU gestartet.");
-        let one: &FheUint8 = &FheUint8::try_encrypt_trivial(1u8).unwrap();
-        let mut accu: FheUint8 = FheUint8::try_encrypt_trivial(0u8).unwrap();
+        let one: &FheUint8 = &encrypt_trivial!(1u8);
+        let mut accu: FheUint8 = encrypt_trivial!(0u8);
 
-        // Weil das Programm im cipherspace nicht terminieren kann, erstmal fixe cycles laufen lassen.
         for i in 1..(cycles + 1) {
             println!("\n[ControlUnit] Zyklus {} gestartet.", i);
             let start_cycle = Instant::now();
@@ -106,7 +131,7 @@ impl ControlUnit {
             let start_time = Instant::now();
             let possible_new_accu_value: FheUint8 =
                 alu_result * is_alu_command + calculation_data.clone() * is_load_command;
-            let one: FheUint8 = FheUint8::try_encrypt_trivial(1u8).unwrap();
+            let one: FheUint8 = encrypt_trivial!(1u8);
             accu = possible_new_accu_value * &is_write_accu + &accu * (one - &is_write_accu);
 
             println!(
@@ -124,6 +149,17 @@ impl ControlUnit {
         }
     }
 
+    ///
+    /// Berechnet den neuen ProgramCounter.
+    ///
+    /// # Arguments
+    /// * `one` - Die 1, die für die Berechnung benötigt wird.
+    /// * `opcode` - Der Opcode, der für die Berechnung benötigt wird.
+    /// * `operand` - Der Operand, der für die Berechnung benötigt wird.
+    /// * `key` - Der Schlüssel, der für die Berechnung benötigt wird.
+    ///
+    /// # Returns
+    /// * Den neuen ProgramCounter in einem JoinHandle.
     fn calculate_program_counter(
         &mut self,
         one: &FheUint8,

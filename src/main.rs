@@ -1,6 +1,6 @@
-use std::time::Instant;
 use crate::clientside::{client, verify};
 use crate::serverside::server;
+use std::time::Instant;
 
 mod clientside;
 mod serverside;
@@ -12,18 +12,27 @@ fn main() {
     let start = Instant::now();
     client::start().expect("Fehler im Client!");
     println!("-------");
-    println!("Client Ausführung beendet! Zeit in ms: {}", (start.elapsed()).as_millis());
+    println!(
+        "Client Ausführung beendet! Zeit in ms: {}",
+        (start.elapsed()).as_millis()
+    );
     println!("-------");
 
     let start = Instant::now();
     server::start().expect("Fehler im Server!");
     println!("-------");
-    println!("Server Ausführung beendet! Zeit in ms: {}", (start.elapsed()).as_millis());
+    println!(
+        "Server Ausführung beendet! Zeit in ms: {}",
+        (start.elapsed()).as_millis()
+    );
     println!("-------");
 
     let start = Instant::now();
     verify::start().expect("Fehler im Verify!");
     println!("-------");
-    println!("Verify Ausführung beendet! Zeit in ms: {}", (start.elapsed()).as_millis());
+    println!(
+        "Verify Ausführung beendet! Zeit in ms: {}",
+        (start.elapsed()).as_millis()
+    );
     println!("-------");
 }

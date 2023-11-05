@@ -1,5 +1,5 @@
-use tfhe::FheUint8;
 use tfhe::prelude::*;
+use tfhe::FheUint8;
 
 /// Datenstruktur zum Speichern aller ALU-Opcodes und Ausführen einfacher inhaltlicher Abfragen.
 #[derive(Clone)]
@@ -22,7 +22,7 @@ pub struct OpcodeContainerAlu {
 
 impl OpcodeContainerAlu {
     pub(crate) fn new() -> OpcodeContainerAlu {
-        OpcodeContainerAlu{
+        OpcodeContainerAlu {
             add: FheUint8::try_encrypt_trivial(0b1000_0001u8).unwrap(),
             or: FheUint8::try_encrypt_trivial(0b1000_0010u8).unwrap(),
             and: FheUint8::try_encrypt_trivial(0b1000_0011u8).unwrap(),
@@ -44,8 +44,7 @@ impl OpcodeContainerAlu {
 impl OpcodeContainerAlu {
     /// Prüft, ob der OpCode einen ALU-Befehl repräsentiert
     pub fn contains_opcode(&self, opcode: &FheUint8) -> FheUint8 {
-        self.is_ram_opcode(opcode)
-            | self.is_constant_opcode(opcode)
+        self.is_ram_opcode(opcode) | self.is_constant_opcode(opcode)
     }
 
     /// Prüft, ob es sich um einen ALU-Opcode handelt, welcher einen Wert aus dem RAM auslesen muss
@@ -62,32 +61,26 @@ impl OpcodeContainerAlu {
     }
 
     pub fn is_add(&self, opcode: &FheUint8) -> FheUint8 {
-        opcode.eq(&self.add)
-            | opcode.eq(&self.add_r)
+        opcode.eq(&self.add) | opcode.eq(&self.add_r)
     }
 
     pub fn is_and(&self, opcode: &FheUint8) -> FheUint8 {
-        opcode.eq(&self.and)
-            | opcode.eq(&self.and_r)
+        opcode.eq(&self.and) | opcode.eq(&self.and_r)
     }
 
     pub fn is_or(&self, opcode: &FheUint8) -> FheUint8 {
-        opcode.eq(&self.or)
-            | opcode.eq(&self.or_r)
+        opcode.eq(&self.or) | opcode.eq(&self.or_r)
     }
 
     pub fn is_xor(&self, opcode: &FheUint8) -> FheUint8 {
-        opcode.eq(&self.xor)
-            | opcode.eq(&self.xor_r)
+        opcode.eq(&self.xor) | opcode.eq(&self.xor_r)
     }
 
     pub fn is_sub(&self, opcode: &FheUint8) -> FheUint8 {
-        opcode.eq(&self.sub)
-            | opcode.eq(&self.sub_r)
+        opcode.eq(&self.sub) | opcode.eq(&self.sub_r)
     }
 
     pub fn is_mul(&self, opcode: &FheUint8) -> FheUint8 {
-        opcode.eq(&self.mul)
-            | opcode.eq(&self.mul_r)
+        opcode.eq(&self.mul) | opcode.eq(&self.mul_r)
     }
 }

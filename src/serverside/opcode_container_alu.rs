@@ -1,5 +1,6 @@
 use tfhe::prelude::*;
 use tfhe::FheUint8;
+use crate::encrypt_trivial;
 
 /// Datenstruktur zum Speichern aller ALU-Opcodes und Ausführen einfacher inhaltlicher Abfragen.
 #[derive(Clone)]
@@ -23,20 +24,20 @@ pub struct OpcodeContainerAlu {
 impl OpcodeContainerAlu {
     pub(crate) fn new() -> OpcodeContainerAlu {
         OpcodeContainerAlu {
-            add: FheUint8::try_encrypt_trivial(0b1000_0001u8).unwrap(),
-            or: FheUint8::try_encrypt_trivial(0b1000_0010u8).unwrap(),
-            and: FheUint8::try_encrypt_trivial(0b1000_0011u8).unwrap(),
-            xor: FheUint8::try_encrypt_trivial(0b1000_0100u8).unwrap(),
-            sub: FheUint8::try_encrypt_trivial(0b1000_0101u8).unwrap(),
-            mul: FheUint8::try_encrypt_trivial(0b1000_0110u8).unwrap(),
-            add_r: FheUint8::try_encrypt_trivial(0b1100_0001u8).unwrap(),
-            or_r: FheUint8::try_encrypt_trivial(0b1100_0010u8).unwrap(),
-            and_r: FheUint8::try_encrypt_trivial(0b1100_0011u8).unwrap(),
-            xor_r: FheUint8::try_encrypt_trivial(0b1100_0100u8).unwrap(),
-            sub_r: FheUint8::try_encrypt_trivial(0b1100_0101u8).unwrap(),
-            mul_r: FheUint8::try_encrypt_trivial(0b1100_0110u8).unwrap(),
-            alu_ram_mask: FheUint8::try_encrypt_trivial(0b1100_0000u8).unwrap(),
-            alu_const_mask: FheUint8::try_encrypt_trivial(0b1000_0000u8).unwrap(),
+            add: encrypt_trivial!(0b1000_0001u8),
+            or: encrypt_trivial!(0b1000_0010u8),
+            and: encrypt_trivial!(0b1000_0011u8),
+            xor: encrypt_trivial!(0b1000_0100u8),
+            sub: encrypt_trivial!(0b1000_0101u8),
+            mul: encrypt_trivial!(0b1000_0110u8),
+            add_r: encrypt_trivial!(0b1100_0001u8),
+            or_r: encrypt_trivial!(0b1100_0010u8),
+            and_r: encrypt_trivial!(0b1100_0011u8),
+            xor_r: encrypt_trivial!(0b1100_0100u8),
+            sub_r: encrypt_trivial!(0b1100_0101u8),
+            mul_r: encrypt_trivial!(0b1100_0110u8),
+            alu_ram_mask: encrypt_trivial!(0b1100_0000u8),
+            alu_const_mask: encrypt_trivial!(0b1000_0000u8),
         }
     }
 }
@@ -54,7 +55,7 @@ impl OpcodeContainerAlu {
 
     /// Prüft, ob es sich um einen ALU-Opcode handelt, welcher einen Wert als Konstante erwartet.
     pub fn is_constant_opcode(&self, opcode: &FheUint8) -> FheUint8 {
-        let one: FheUint8 = FheUint8::try_encrypt_trivial(1u8).unwrap();
+        let one: FheUint8 = encrypt_trivial!(1u8);
         let msb_equal = (opcode & &self.alu_const_mask).eq(&self.alu_const_mask);
         let not_ram_flag = one - self.is_ram_opcode(opcode);
         msb_equal.eq(not_ram_flag) // (Erstes Bit gesetzt) == (zweites Bit nicht gesetzt)

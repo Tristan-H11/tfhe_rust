@@ -2,16 +2,18 @@ use std::time::Instant;
 
 use tfhe::prelude::*;
 use tfhe::FheUint8;
+use crate::{encrypt_trivial, time};
 
 use crate::serverside::opcode_container_alu::OpcodeContainerAlu;
 
-/// Darstellung der ALU über vorgegebene Operationen, die mit selbst gewählten OpCodes
-/// angesteuert werden können.
-/// Aktuell existieren:
-/// - Addition
-/// - Binäres Und
-/// - Binäres Oder
-/// - Binäres XOr
+///
+/// Darstellung der ALU.
+///
+/// # Flags
+/// * Zero-Flag: Wird gesetzt, wenn das Ergebnis der Berechnung 0 ist.
+/// * Overflow-Flag: Wird gesetzt, wenn das Ergebnis der Berechnung einen Überlauf verursacht hat.
+/// * Carry-Flag: Wird gesetzt, wenn das Ergebnis der Berechnung einen Carry verursacht hat.
+///
 pub struct Alu {
     pub(crate) opcodes: OpcodeContainerAlu,
     pub(crate) zero_flag: FheUint8,
@@ -21,7 +23,7 @@ pub struct Alu {
 
 impl Alu {
     /// Berechnet Anhang des übergebenen OpCodes das Ergebnis der beiden Operanden.
-    /// Die Berechnung verfolgt ohne Verzweigung über die folgende Logik (mit add, and, or & xor dargestellt):
+    /// Die Berechnung verfolgt ohne Verzweigung über die folgende Logik (mit add, and, or sowie xor dargestellt):
     /// `result = (add_result * op_code.eq(opcode_add)) + (and_result * op_code.eq(opcode_and)) + (or_result * op_code.eq(opcode_or)) + (xor_result * op_code.eq(opcode_xor))`
     ///<br><br>
     /// Aktuell berechnet die Alu `ADD`, `AND`, `OR`, `XOR`, `SUB` und `MUL`.
@@ -79,10 +81,10 @@ impl Alu {
 
         let result = add_and_result + or_xor_result + mul_sub_result;
 
-        let one: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
+        let one: FheUint8 = encrypt_trivial!(1u8);
 
         // Zero-Flag
-        self.zero_flag = result.eq(&FheUint8::try_encrypt_trivial(0u8).unwrap());
+        self.zero_flag = result.eq(&encrypt_trivial!(0u8));
         let new_overflow_flag: FheUint8 = self.calculate_overflow(operand, accu, &result);
         self.overflow_flag =
             new_overflow_flag * is_alu_command + &self.overflow_flag * (&one - is_alu_command);
@@ -98,16 +100,14 @@ impl Alu {
         result
     }
 
-    // TODO
-    //  Die beiden Funktionen hier drunter sind noch ungeprüft und ich bin nicht ganz sicher, ob die korrekt sind!!!!
-    //  Und es ist noch unklar, wann welche Flags gesetzt werden sollen.
-
+    ///
     /// Wenn die beiden MSB's ver-xort werden und dieses Ergebnis ungleich dem Ergebnis MSB ist,
     /// dann gab es einen Carry an vorletzter Stelle, also einen Overflow. <br>
     /// `Overflow = (A_msb ^ B_msb) ^ Result_msb`
+    ///
     fn calculate_overflow(&mut self, a: &FheUint8, b: &FheUint8, result: &FheUint8) -> FheUint8 {
-        let negate_mask: &FheUint8 = &FheUint8::try_encrypt_trivial(0b0000_0001 as u8).unwrap();
-        let msb_mask: &FheUint8 = &FheUint8::try_encrypt_trivial(0b1000_0000 as u8).unwrap();
+        let negate_mask: &FheUint8 = &encrypt_trivial!(0b0000_0001u8);
+        let msb_mask: &FheUint8 = &encrypt_trivial!(0b1000_0000u8);
         let masked_a: FheUint8 = a & msb_mask;
         let masked_b: FheUint8 = b & msb_mask;
         let masked_result: FheUint8 = result & msb_mask;
@@ -118,11 +118,13 @@ impl Alu {
         &equal ^ negate_mask
     }
 
+    ///
     /// Ein Carry im letzten Bit gibt es, wenn die MSB der beiden Operanden ungleich sind UND es einen overflow gab
     /// ODER wenn die beiden MSB ver-undet 1 ergeben. <br>
     /// `Carry = (((A_msb ^ B_msb).eq(msb_mask) & self.overflow_flag) | (A_msb.eq(B_msb)`
+    ///
     fn calculate_carry(&mut self, a: &FheUint8, b: &FheUint8) -> FheUint8 {
-        let msb_mask: &FheUint8 = &FheUint8::try_encrypt_trivial(0b1000_0000 as u8).unwrap();
+        let msb_mask: &FheUint8 = &encrypt_trivial!(0b1000_0000u8);
         let masked_a: FheUint8 = a & msb_mask;
         let masked_b: FheUint8 = b & msb_mask;
 

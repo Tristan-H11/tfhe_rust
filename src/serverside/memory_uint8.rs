@@ -1,8 +1,8 @@
 use std::time::Instant;
 
 use rayon::prelude::*;
-use tfhe::{FheUint8};
 use tfhe::prelude::*;
+use tfhe::FheUint8;
 
 /// Darstellung des RAMs über einen Vector
 /// Der Vector enthält in jeder Zelle ein Tupel (u8, u8).
@@ -16,9 +16,7 @@ impl MemoryUint8 {
     pub fn new(data: Vec<(FheUint8, FheUint8)>, size: usize) -> MemoryUint8 {
         println!("[RAM] new() gestartet.");
         assert_eq!(data.len(), size);
-        MemoryUint8 {
-            data,
-        }
+        MemoryUint8 { data }
     }
 
     pub fn get_data(&self) -> Vec<(FheUint8, FheUint8)> {
@@ -32,18 +30,20 @@ impl MemoryUint8 {
     pub fn read_from_ram(&self, address: &FheUint8) -> (FheUint8, FheUint8) {
         let start_time = Instant::now();
 
-        let mut result: (FheUint8, FheUint8) =
-            (
-                FheUint8::try_encrypt_trivial(0 as u8).unwrap(),
-                FheUint8::try_encrypt_trivial(0 as u8).unwrap()
-            );
+        let mut result: (FheUint8, FheUint8) = (
+            FheUint8::try_encrypt_trivial(0 as u8).unwrap(),
+            FheUint8::try_encrypt_trivial(0 as u8).unwrap(),
+        );
 
-        result = self.data.par_iter()
+        result = self
+            .data
+            .par_iter()
             .enumerate()
             .map(|(current_index, (first, second))| {
                 let address = address.clone();
 
-                let encrypted_index: FheUint8 = FheUint8::try_encrypt_trivial(current_index as u8).unwrap();
+                let encrypted_index: FheUint8 =
+                    FheUint8::try_encrypt_trivial(current_index as u8).unwrap();
                 let condition: &FheUint8 = &address.eq(&encrypted_index);
 
                 let result: (FheUint8, FheUint8) = (
@@ -52,11 +52,13 @@ impl MemoryUint8 {
                 );
                 result
             })
-            .reduce_with(|a: (FheUint8, FheUint8), b: (FheUint8, FheUint8)| {
-                (a.0 + b.0, a.1 + b.1)
-            }).unwrap_or(result);
+            .reduce_with(|a: (FheUint8, FheUint8), b: (FheUint8, FheUint8)| (a.0 + b.0, a.1 + b.1))
+            .unwrap_or(result);
 
-        println!("[RAM, {}ms] Lesen des RAMs beendet.", start_time.elapsed().as_millis());
+        println!(
+            "[RAM, {}ms] Lesen des RAMs beendet.",
+            start_time.elapsed().as_millis()
+        );
         result
     }
 
@@ -66,19 +68,25 @@ impl MemoryUint8 {
         let start_time = Instant::now();
         let one: FheUint8 = FheUint8::try_encrypt_trivial(1 as u8).unwrap();
 
-        self.data.par_iter_mut().enumerate().for_each(|(index, field)| {
-            let new_value = new_value.clone();
-            let is_write = is_write.clone();
-            let one = one.clone();
-            let address = address.clone();
+        self.data
+            .par_iter_mut()
+            .enumerate()
+            .for_each(|(index, field)| {
+                let new_value = new_value.clone();
+                let is_write = is_write.clone();
+                let one = one.clone();
+                let address = address.clone();
 
-            let encrypted_index: FheUint8 = FheUint8::try_encrypt_trivial(index as u8).unwrap();
-            let condition: FheUint8 = address.eq(&encrypted_index) * &is_write;
-            let not_condition: FheUint8 = &one - &condition;
+                let encrypted_index: FheUint8 = FheUint8::try_encrypt_trivial(index as u8).unwrap();
+                let condition: FheUint8 = address.eq(&encrypted_index) * &is_write;
+                let not_condition: FheUint8 = &one - &condition;
 
-            field.1 = (condition * new_value.clone()) + (not_condition * field.1.clone());
-        });
+                field.1 = (condition * new_value.clone()) + (not_condition * field.1.clone());
+            });
 
-        println!("[RAM, {}ms] Schreiben des RAMs beendet.", start_time.elapsed().as_millis());
+        println!(
+            "[RAM, {}ms] Schreiben des RAMs beendet.",
+            start_time.elapsed().as_millis()
+        );
     }
 }

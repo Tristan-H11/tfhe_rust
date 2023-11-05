@@ -37,9 +37,9 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
     // Die Befehle, die ausgeführt werden sollen
     let program_data: Vec<(u8, u8)> = vec![
-        (LOAD, 2),      // Lade 1 in den Akkumulator (Akk = 1)
+        (LOAD, 2), // Lade 1 in den Akkumulator (Akk = 1)
         (ALU_ADD, 3),
-        (STORE, 0)
+        (STORE, 0),
     ];
 
     let encrypted_program_data: Vec<(FheUint8, FheUint8)> = program_data

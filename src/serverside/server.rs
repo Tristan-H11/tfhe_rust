@@ -4,8 +4,8 @@ use std::io::{Read, Write};
 use std::time::Instant;
 
 use bincode;
-use tfhe::{FheUint8, ServerKey, set_server_key};
 use tfhe::prelude::FheTryTrivialEncrypt;
+use tfhe::{set_server_key, FheUint8, ServerKey};
 
 use crate::serverside::control_unit::ControlUnit;
 use crate::serverside::opcode_container::OpcodeContainer;
@@ -21,7 +21,6 @@ use crate::serverside::opcode_container::OpcodeContainer;
 /// Program-RAM und einen Program-Counter simulieren, damit "richtige" Programmabläufe möglich
 /// werden.
 pub fn start() -> Result<(), Box<dyn Error>> {
-
     let start_time = Instant::now();
     // Server Key einlesen
     let mut serialized_server_key = Vec::new();
@@ -36,7 +35,10 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     // This race condition is introduced by the way rayon uses work stealing
     // So this workaround casts the key onto the global rayon-threadpool and thus, it can't race anymore.
     rayon::broadcast(|_| set_server_key(cloned_key.clone()));
-    println!("[Server, {}ms] ServerKey eingelesen und gesetzt.", start_time.elapsed().as_millis());
+    println!(
+        "[Server, {}ms] ServerKey eingelesen und gesetzt.",
+        start_time.elapsed().as_millis()
+    );
 
     // Daten einlesen
     let opcodes: OpcodeContainer = OpcodeContainer::new();
@@ -51,7 +53,10 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     file.read_to_end(&mut deserialized_program)?;
 
     let mut program_data: Vec<(FheUint8, FheUint8)> = bincode::deserialize(&deserialized_program)?;
-    println!("[Server, {}ms] Programm eingelesen.", start_time.elapsed().as_millis());
+    println!(
+        "[Server, {}ms] Programm eingelesen.",
+        start_time.elapsed().as_millis()
+    );
 
     let start_time = Instant::now();
     // Die ram_size wird nun abhängig von dem übergebenen Programm bestimmt.
@@ -59,12 +64,7 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
     // Ram mit nullen auffüllen, bevor er übergeben wird.
     while program_data.len() < ram_size {
-        program_data.push(
-            (
-                zero_initializer.clone(),
-                zero_initializer.clone()
-            )
-        )
+        program_data.push((zero_initializer.clone(), zero_initializer.clone()))
     }
 
     let mut control_unit = ControlUnit::new(
@@ -75,7 +75,10 @@ pub fn start() -> Result<(), Box<dyn Error>> {
         ram_size.clone(),
         cloned_key,
     );
-    println!("[Server, {}ms] CU erstellt.", start_time.elapsed().as_millis());
+    println!(
+        "[Server, {}ms] CU erstellt.",
+        start_time.elapsed().as_millis()
+    );
 
     control_unit.start(ram_size as u8);
 
@@ -83,6 +86,9 @@ pub fn start() -> Result<(), Box<dyn Error>> {
     let serialized_result = bincode::serialize(&control_unit.get_ram())?;
     let mut file = File::create("calculated_result.bin")?;
     file.write_all(serialized_result.as_slice())?;
-    println!("[Server, {}ms] Ergebnis serialisiert.", start_time.elapsed().as_millis());
+    println!(
+        "[Server, {}ms] Ergebnis serialisiert.",
+        start_time.elapsed().as_millis()
+    );
     Ok(())
 }

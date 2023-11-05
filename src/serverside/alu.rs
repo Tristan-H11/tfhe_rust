@@ -1,7 +1,7 @@
 use std::time::Instant;
 
-use tfhe::{FheUint8};
 use tfhe::prelude::*;
+use tfhe::FheUint8;
 
 use crate::serverside::opcode_container_alu::OpcodeContainerAlu;
 
@@ -28,48 +28,54 @@ impl Alu {
     /// <br><br>
     /// Soweit alle OpCodes richtig gesetzt sind und ein zulässiger op_code übergeben wird, wird immer ein Ergebnis berechnet.
     /// Sollten OpCodes falsch gesetzt sein oder ein ungültiger Opcode übergeben werden, kann fälschlicherweise `0` berechnet werden.
-    pub fn calculate(&mut self, op_code: &FheUint8, operand: &FheUint8, accu: &FheUint8, is_alu_command: &FheUint8) -> FheUint8 {
+    pub fn calculate(
+        &mut self,
+        op_code: &FheUint8,
+        operand: &FheUint8,
+        accu: &FheUint8,
+        is_alu_command: &FheUint8,
+    ) -> FheUint8 {
         let start_time = Instant::now();
 
+        let (add_and_result, (or_xor_result, mul_sub_result)): (FheUint8, (FheUint8, FheUint8)) =
+            rayon::join(
+                || {
+                    let opcodes = self.opcodes.clone();
+                    let op_code = op_code.clone();
+                    let operand = operand.clone();
+                    let accu = accu.clone();
 
-        let (add_and_result, (or_xor_result, mul_sub_result)): (FheUint8, (FheUint8, FheUint8)) = rayon::join(
-            || {
-                let opcodes = self.opcodes.clone();
-                let op_code = op_code.clone();
-                let operand = operand.clone();
-                let accu = accu.clone();
+                    let is_addition: FheUint8 = opcodes.is_add(&op_code);
+                    let is_and: FheUint8 = opcodes.is_and(&op_code);
+                    (&operand + &accu) * is_addition + (operand & accu) * is_and
+                },
+                // Hier muss ein bisschen geschummelt werden, weil ein Join nur zwei Rückgabetypen akzeptiert.
+                // Deshalb ist es ein geschachteltes Join und der zweite Eintrag des Ergebnisses ist selber ein Tupel
+                || {
+                    rayon::join(
+                        || {
+                            let opcodes = self.opcodes.clone();
+                            let op_code = op_code.clone();
+                            let operand = operand.clone();
+                            let accu = accu.clone();
 
-                let is_addition: FheUint8 = opcodes.is_add(&op_code);
-                let is_and: FheUint8 = opcodes.is_and(&op_code);
-                (&operand + &accu) * is_addition + (operand & accu) * is_and
-            },
-            // Hier muss ein bisschen geschummelt werden, weil ein Join nur zwei Rückgabetypen akzeptiert.
-            // Deshalb ist es ein geschachteltes Join und der zweite Eintrag des Ergebnisses ist selber ein Tupel
-            || {
-                rayon::join(
-                    || {
-                        let opcodes = self.opcodes.clone();
-                        let op_code = op_code.clone();
-                        let operand = operand.clone();
-                        let accu = accu.clone();
+                            let is_or: FheUint8 = opcodes.is_or(&op_code);
+                            let is_xor: FheUint8 = opcodes.is_xor(&op_code);
+                            (&operand | &accu) * is_or + (operand ^ accu) * is_xor
+                        },
+                        || {
+                            let opcodes = self.opcodes.clone();
+                            let op_code = op_code.clone();
+                            let operand = operand.clone();
+                            let accu = accu.clone();
 
-                        let is_or: FheUint8 = opcodes.is_or(&op_code);
-                        let is_xor: FheUint8 = opcodes.is_xor(&op_code);
-                        (&operand | &accu) * is_or + (operand ^ accu) * is_xor
-                    },
-                    || {
-                        let opcodes = self.opcodes.clone();
-                        let op_code = op_code.clone();
-                        let operand = operand.clone();
-                        let accu = accu.clone();
-
-                        let is_mul: FheUint8 = opcodes.is_mul(&op_code);
-                        let is_sub: FheUint8 = opcodes.is_sub(&op_code);
-                        (&operand * &accu) * is_mul + (accu - operand) * is_sub
-                    },
-                )
-            },
-        );
+                            let is_mul: FheUint8 = opcodes.is_mul(&op_code);
+                            let is_sub: FheUint8 = opcodes.is_sub(&op_code);
+                            (&operand * &accu) * is_mul + (accu - operand) * is_sub
+                        },
+                    )
+                },
+            );
 
         let result = add_and_result + or_xor_result + mul_sub_result;
 
@@ -78,12 +84,17 @@ impl Alu {
         // Zero-Flag
         self.zero_flag = result.eq(&FheUint8::try_encrypt_trivial(0u8).unwrap());
         let new_overflow_flag: FheUint8 = self.calculate_overflow(operand, accu, &result);
-        self.overflow_flag = new_overflow_flag * is_alu_command + &self.overflow_flag * (&one - is_alu_command);
+        self.overflow_flag =
+            new_overflow_flag * is_alu_command + &self.overflow_flag * (&one - is_alu_command);
 
         let new_carry_flag: FheUint8 = self.calculate_carry(operand, accu);
-        self.carry_flag = new_carry_flag * is_alu_command + &self.carry_flag * (&one - is_alu_command);
+        self.carry_flag =
+            new_carry_flag * is_alu_command + &self.carry_flag * (&one - is_alu_command);
 
-        println!("[ALU, {}ms] Berechnung und Flags abgeschlossen.", start_time.elapsed().as_millis());
+        println!(
+            "[ALU, {}ms] Berechnung und Flags abgeschlossen.",
+            start_time.elapsed().as_millis()
+        );
         result
     }
 

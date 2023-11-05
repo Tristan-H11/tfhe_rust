@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use tfhe::prelude::*;
 use tfhe::FheUint8;
-use crate::{encrypt_trivial, time};
+use crate::encrypt_trivial;
 
 use crate::serverside::opcode_container_alu::OpcodeContainerAlu;
 

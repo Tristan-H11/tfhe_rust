@@ -3,8 +3,8 @@ use crate::serverside::server;
 use std::time::Instant;
 
 mod clientside;
-mod serverside;
 pub mod macros;
+mod serverside;
 
 /// Einstiegspunkt für die Entwicklung.
 /// Später müssen die drei `start()` Funktionen die Main-Funktionen der entsprechenden

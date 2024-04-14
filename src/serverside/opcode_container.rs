@@ -1,7 +1,7 @@
+use crate::encrypt_trivial;
 use crate::serverside::opcode_container_alu::OpcodeContainerAlu;
 use tfhe::prelude::*;
 use tfhe::{FheBool, FheUint8};
-use crate::encrypt_trivial;
 
 ///
 /// Datenstruktur zum Speichern aller Opcodes und Ausführen einfacher inhaltlicher Abfragen.

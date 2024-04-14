@@ -1,7 +1,7 @@
 use std::time::Instant;
 
-use tfhe::{FheBool, FheUint8};
 use tfhe::prelude::*;
+use tfhe::{FheBool, FheUint8};
 
 use crate::encrypt_trivial;
 use crate::serverside::opcode_container_alu::OpcodeContainerAlu;
@@ -94,7 +94,8 @@ impl Alu {
         self.zero_flag = result.eq(&encrypt_trivial!(0u8));
 
         let new_overflow_flag: FheBool = self.calculate_overflow(operand, accu, &result);
-        self.overflow_flag = (&new_overflow_flag & is_alu_command) | (&self.overflow_flag & !is_alu_command);
+        self.overflow_flag =
+            (&new_overflow_flag & is_alu_command) | (&self.overflow_flag & !is_alu_command);
 
         let new_carry_flag: FheBool = self.calculate_carry(operand, accu);
         self.carry_flag = (&new_carry_flag & is_alu_command) | (&self.carry_flag & !is_alu_command);

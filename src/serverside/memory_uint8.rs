@@ -1,9 +1,9 @@
 use std::time::Instant;
 
+use crate::encrypt_trivial;
 use rayon::prelude::*;
 use tfhe::prelude::*;
 use tfhe::{FheBool, FheUint8};
-use crate::encrypt_trivial;
 
 /// Darstellung des RAMs über einen Vector
 /// Der Vector enthält in jeder Zelle ein Tupel (u8, u8).
@@ -31,17 +31,13 @@ impl MemoryUint8 {
     pub fn read_from_ram(&self, address: &FheUint8) -> (FheUint8, FheUint8) {
         let start_time = Instant::now();
 
-        let mut result: (FheUint8, FheUint8) = (
-            encrypt_trivial!(0u8),
-            encrypt_trivial!(0u8),
-        );
+        let mut result: (FheUint8, FheUint8) = (encrypt_trivial!(0u8), encrypt_trivial!(0u8));
 
         result = self
             .data
             .par_iter()
             .enumerate()
             .map(|(current_index, (first, second))| {
-
                 let encrypted_index: FheUint8 =
                     FheUint8::try_encrypt_trivial(current_index as u8).unwrap();
                 let condition = &address.eq(&encrypted_index);

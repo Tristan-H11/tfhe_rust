@@ -4,8 +4,8 @@ use std::io::{Read, Write};
 use std::time::Instant;
 
 use bincode;
-use tfhe::{FheUint8, ServerKey, set_server_key};
 use tfhe::prelude::FheTryTrivialEncrypt;
+use tfhe::{set_server_key, FheUint8, ServerKey};
 
 use crate::encrypt_trivial;
 use crate::serverside::control_unit::ControlUnit;

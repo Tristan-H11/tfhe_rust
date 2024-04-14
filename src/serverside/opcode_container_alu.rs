@@ -1,6 +1,6 @@
+use crate::encrypt_trivial;
 use tfhe::prelude::*;
 use tfhe::{FheBool, FheUint8};
-use crate::encrypt_trivial;
 
 ///
 /// Datenstruktur zum Speichern aller ALU-Opcodes und Ausführen einfacher inhaltlicher Abfragen.

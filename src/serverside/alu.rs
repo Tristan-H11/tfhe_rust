@@ -43,13 +43,16 @@ impl Alu {
             rayon::join(
                 || {
                     let opcodes = self.opcodes.clone();
-                    let op_code = op_code.clone();
-                    let operand = operand.clone();
-                    let accu = accu.clone();
+                    let op_code = &op_code.clone();
+                    let operand = &operand.clone();
+                    let accu = &accu.clone();
 
-                    let is_addition: FheUint8 = opcodes.is_add(&op_code);
-                    let is_and: FheUint8 = opcodes.is_and(&op_code);
-                    (&operand + &accu) * is_addition + (operand & accu) * is_and
+                    let is_addition = opcodes.is_add(&op_code);
+                    let is_and = opcodes.is_and(&op_code);
+
+                    // Die Summe aus Addition und AND
+                    is_addition.if_then_else(&(operand + accu), &encrypt_trivial!(0u8))
+                        + is_and.if_then_else(&(operand & accu), &encrypt_trivial!(0u8))
                 },
                 // Hier muss ein bisschen geschummelt werden, weil ein Join nur zwei Rückgabetypen akzeptiert.
                 // Deshalb ist es ein geschachteltes Join und der zweite Eintrag des Ergebnisses ist selber ein Tupel
@@ -57,23 +60,29 @@ impl Alu {
                     rayon::join(
                         || {
                             let opcodes = self.opcodes.clone();
-                            let op_code = op_code.clone();
-                            let operand = operand.clone();
-                            let accu = accu.clone();
+                            let op_code = &op_code.clone();
+                            let operand = &operand.clone();
+                            let accu = &accu.clone();
 
-                            let is_or: FheUint8 = opcodes.is_or(&op_code);
-                            let is_xor: FheUint8 = opcodes.is_xor(&op_code);
-                            (&operand | &accu) * is_or + (operand ^ accu) * is_xor
+                            let is_or = opcodes.is_or(&op_code);
+                            let is_xor = opcodes.is_xor(&op_code);
+
+                            // Die Summe aus OR und XOR
+                            is_or.if_then_else(&(operand | accu), &encrypt_trivial!(0u8))
+                                + is_xor.if_then_else(&(operand ^ accu), &encrypt_trivial!(0u8))
                         },
                         || {
                             let opcodes = self.opcodes.clone();
-                            let op_code = op_code.clone();
-                            let operand = operand.clone();
-                            let accu = accu.clone();
+                            let op_code = &op_code.clone();
+                            let operand = &operand.clone();
+                            let accu = &accu.clone();
 
-                            let is_mul: FheUint8 = opcodes.is_mul(&op_code);
-                            let is_sub: FheUint8 = opcodes.is_sub(&op_code);
-                            (&operand * &accu) * is_mul + (accu - operand) * is_sub
+                            let is_mul = opcodes.is_mul(&op_code);
+                            let is_sub = opcodes.is_sub(&op_code);
+
+                            // Die Summe aus MUL und SUB
+                            is_mul.if_then_else(&(operand * accu), &encrypt_trivial!(0u8))
+                                + is_sub.if_then_else(&(accu - operand), &encrypt_trivial!(0u8))
                         },
                     )
                 },
@@ -85,10 +94,10 @@ impl Alu {
         self.zero_flag = result.eq(&encrypt_trivial!(0u8));
 
         let new_overflow_flag: FheBool = self.calculate_overflow(operand, accu, &result);
-        self.overflow_flag = is_alu_command.if_then_else(&new_overflow_flag, &self.overflow_flag);
+        self.overflow_flag = (&new_overflow_flag & is_alu_command) | (&self.overflow_flag & !is_alu_command);
 
         let new_carry_flag: FheBool = self.calculate_carry(operand, accu);
-        self.carry_flag = is_alu_command.if_then_else(&new_carry_flag, &self.carry_flag);
+        self.carry_flag = (&new_carry_flag & is_alu_command) | (&self.carry_flag & !is_alu_command);
 
         println!(
             "[ALU, {}ms] Berechnung und Flags abgeschlossen.",
@@ -103,7 +112,6 @@ impl Alu {
     /// `Overflow = (A_msb ^ B_msb) ^ Result_msb`
     ///
     fn calculate_overflow(&mut self, a: &FheUint8, b: &FheUint8, result: &FheUint8) -> FheBool {
-        let negate_mask: &FheUint8 = &encrypt_trivial!(0b0000_0001u8);
         let msb_mask: &FheUint8 = &encrypt_trivial!(0b1000_0000u8);
         let masked_a: FheUint8 = a & msb_mask;
         let masked_b: FheUint8 = b & msb_mask;

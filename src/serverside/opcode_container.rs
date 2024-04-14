@@ -1,6 +1,6 @@
 use crate::serverside::opcode_container_alu::OpcodeContainerAlu;
 use tfhe::prelude::*;
-use tfhe::FheUint8;
+use tfhe::{FheBool, FheUint8};
 use crate::encrypt_trivial;
 
 ///
@@ -40,7 +40,7 @@ impl OpcodeContainer {
     ///
     /// # Returns
     /// * `1`, wenn es sich um einen Load-Command handelt, sonst `0`.
-    pub fn is_load_command(&self, opcode: &FheUint8) -> FheUint8 {
+    pub fn is_load_command(&self, opcode: &FheUint8) -> FheBool {
         opcode.eq(&self.load) | opcode.eq(&self.load_r)
     }
 
@@ -52,7 +52,7 @@ impl OpcodeContainer {
     ///
     /// # Returns
     /// * `1`, wenn es sich um einen Load-Operand-Command handelt, sonst `0`.
-    pub fn has_to_load_operand_from_ram(&self, opcode: &FheUint8) -> FheUint8 {
+    pub fn has_to_load_operand_from_ram(&self, opcode: &FheUint8) -> FheBool {
         self.opcodes_alu.is_ram_opcode(opcode) | self.load_r.eq(opcode)
     }
 
@@ -64,7 +64,7 @@ impl OpcodeContainer {
     ///
     /// # Returns
     /// * `1`, wenn es sich um einen ALU-Command handelt, sonst `0`.
-    pub fn is_alu_command(&self, opcode: &FheUint8) -> FheUint8 {
+    pub fn is_alu_command(&self, opcode: &FheUint8) -> FheBool {
         let alu_mask: &FheUint8 = &encrypt_trivial!(0b1000_0000u8);
         (opcode & alu_mask).eq(alu_mask)
     }
@@ -77,7 +77,7 @@ impl OpcodeContainer {
     ///
     /// # Returns
     /// * `1`, wenn es sich um einen Store-Command handelt, sonst `0`.
-    pub fn is_write_to_ram(&self, opcode: &FheUint8) -> FheUint8 {
+    pub fn is_write_to_ram(&self, opcode: &FheUint8) -> FheBool {
         opcode.eq(&self.store)
     }
 
@@ -89,7 +89,7 @@ impl OpcodeContainer {
     ///
     /// # Returns
     /// * `1`, wenn es sich um einen Sprungbefehl handelt, sonst `0`.
-    pub fn is_jump_command(&self, opcode: &FheUint8) -> FheUint8 {
+    pub fn is_jump_command(&self, opcode: &FheUint8) -> FheBool {
         opcode.eq(&self.jnz)
     }
 }

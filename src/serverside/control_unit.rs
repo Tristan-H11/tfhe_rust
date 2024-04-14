@@ -1,10 +1,11 @@
 use std::thread;
 use std::thread::JoinHandle;
 use std::time::Instant;
-use tfhe::prelude::*;
-use tfhe::{set_server_key, FheUint8, ServerKey};
-use crate::encrypt_trivial;
 
+use tfhe::{FheBool, FheUint8, ServerKey, set_server_key};
+use tfhe::prelude::*;
+
+use crate::encrypt_trivial;
 use crate::serverside::alu::Alu;
 use crate::serverside::memory_uint8::MemoryUint8;
 use crate::serverside::opcode_container::OpcodeContainer;
@@ -28,7 +29,6 @@ impl ControlUnit {
     ///
     /// # Arguments
     /// * `opcodes` - Die Opcodes, die die ControlUnit kennen soll.
-    /// * `zero_initializer` - Der Wert, mit dem die Flags initialisiert werden sollen.
     /// * `pc_init_value` - Der Wert, mit dem der ProgramCounter initialisiert werden soll.
     /// * `program_data` - Die Daten, die der Speicher initial halten soll.
     /// * `ram_size` - Die Größe des Speichers.
@@ -38,7 +38,6 @@ impl ControlUnit {
     /// * Eine neue ControlUnit.
     pub fn new(
         opcodes: OpcodeContainer,
-        zero_initializer: FheUint8,
         pc_init_value: FheUint8,
         program_data: Vec<(FheUint8, FheUint8)>,
         ram_size: usize,
@@ -46,9 +45,9 @@ impl ControlUnit {
     ) -> ControlUnit {
         let alu = Alu {
             opcodes: opcodes.opcodes_alu.clone(),
-            zero_flag: zero_initializer.clone(),
-            overflow_flag: zero_initializer.clone(),
-            carry_flag: zero_initializer.clone(),
+            zero_flag: FheBool::encrypt_trivial(false),
+            overflow_flag: FheBool::encrypt_trivial(false),
+            carry_flag: FheBool::encrypt_trivial(false),
         };
 
         let memory = MemoryUint8::new(program_data, ram_size);
@@ -98,11 +97,11 @@ impl ControlUnit {
                 self.calculate_program_counter(one, opcode, operand, self.server_key.clone());
 
             let start_time = Instant::now();
-            let is_alu_command: FheUint8 = self.opcodes.is_alu_command(opcode);
-            let is_load_command: FheUint8 = self.opcodes.is_load_command(opcode);
-            let is_write_accu: FheUint8 = &is_alu_command | &is_load_command;
+            let is_alu_command = self.opcodes.is_alu_command(opcode);
+            let is_load_command = self.opcodes.is_load_command(opcode);
+            let is_write_accu = &is_alu_command | &is_load_command;
 
-            let is_write_ram: FheUint8 = self.opcodes.is_write_to_ram(opcode);
+            let is_write_ram = self.opcodes.is_write_to_ram(opcode);
             println!(
                 "[ControlUnit, {}ms] IsWriteAccu und IsWriteRam ausgewertet.",
                 start_time.elapsed().as_millis()
@@ -113,11 +112,12 @@ impl ControlUnit {
             println!("[ControlUnit] möglichen Schreibzugriff im RAM getätigt");
 
             let start_time = Instant::now();
-            let has_to_load_operand_from_ram: FheUint8 =
+            let has_to_load_operand_from_ram =
                 self.opcodes.has_to_load_operand_from_ram(opcode);
             let ram_value: FheUint8 = self.memory.read_from_ram(operand).1;
-            let calculation_data: FheUint8 = operand * (one - &has_to_load_operand_from_ram)
-                + ram_value * (has_to_load_operand_from_ram);
+
+            let calculation_data = has_to_load_operand_from_ram.if_then_else(&ram_value, operand);
+
             println!(
                 "[ControlUnit, {}ms] Operand (ob RAM oder Konstante) ausgewertet.",
                 start_time.elapsed().as_millis()
@@ -129,10 +129,11 @@ impl ControlUnit {
             println!("[ControlUnit] mögliches ALU Ergebnis bestimmt.");
 
             let start_time = Instant::now();
-            let possible_new_accu_value: FheUint8 =
-                alu_result * is_alu_command + calculation_data.clone() * is_load_command;
-            let one: FheUint8 = encrypt_trivial!(1u8);
-            accu = possible_new_accu_value * &is_write_accu + &accu * (one - &is_write_accu);
+
+            let possible_new_accu_value = is_alu_command.if_then_else(&alu_result, &encrypt_trivial!(0u8))
+                + is_load_command.if_then_else(&calculation_data, &encrypt_trivial!(0u8));
+
+            accu = is_write_accu.if_then_else(&possible_new_accu_value, &accu);
 
             println!(
                 "[ControlUnit, {}ms] Akkumulatorwert bestimmt und geschrieben.",
@@ -176,14 +177,15 @@ impl ControlUnit {
         thread::spawn(move || {
             set_server_key(key);
             let start_time = Instant::now();
-            let is_jump: FheUint8 = opcodes.is_jump_command(&opcode);
+            let is_jump = &opcodes.is_jump_command(&opcode);
 
-            // (1 - cond) = !cond, weil 1 - 1 = 0 und 1 - 0 = 1.
-            let is_no_jump: FheUint8 = &one - &is_jump;
+            let is_no_jump: FheBool = !is_jump;
             let incremented_pc: FheUint8 = pc + &one;
-            let jnz_condition: FheUint8 = zero_flag * &is_jump;
+            let jnz_condition: FheBool = zero_flag & is_jump;
             // pc = ((pc + 1) * noJump) + (operand * jump)
-            let result = incremented_pc * is_no_jump + operand * jnz_condition;
+            let result = is_no_jump.if_then_else(&incremented_pc, &encrypt_trivial!(0u8))
+                + jnz_condition.if_then_else(&operand, &encrypt_trivial!(0u8));
+
             println!(
                 "[ControlUnit, {}ms] ProgramCounter bestimmt und gesetzt.",
                 start_time.elapsed().as_millis()

@@ -4,10 +4,10 @@ use std::io::{Read, Write};
 use std::time::Instant;
 
 use bincode;
+use tfhe::{FheUint8, ServerKey, set_server_key};
 use tfhe::prelude::FheTryTrivialEncrypt;
-use tfhe::{set_server_key, FheUint8, ServerKey};
-use crate::encrypt_trivial;
 
+use crate::encrypt_trivial;
 use crate::serverside::control_unit::ControlUnit;
 use crate::serverside::opcode_container::OpcodeContainer;
 
@@ -70,7 +70,6 @@ pub fn start() -> Result<(), Box<dyn Error>> {
 
     let mut control_unit = ControlUnit::new(
         opcodes,
-        zero_initializer,
         pc_init_value,
         program_data,
         ram_size.clone(),

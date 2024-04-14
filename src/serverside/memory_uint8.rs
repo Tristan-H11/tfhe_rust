@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use rayon::prelude::*;
 use tfhe::prelude::*;
-use tfhe::FheUint8;
+use tfhe::{FheBool, FheUint8};
 use crate::encrypt_trivial;
 
 /// Darstellung des RAMs über einen Vector
@@ -32,8 +32,8 @@ impl MemoryUint8 {
         let start_time = Instant::now();
 
         let mut result: (FheUint8, FheUint8) = (
-            encrypt_trivial!(0 as u8),
-            encrypt_trivial!(0 as u8),
+            encrypt_trivial!(0u8),
+            encrypt_trivial!(0u8),
         );
 
         result = self
@@ -41,15 +41,17 @@ impl MemoryUint8 {
             .par_iter()
             .enumerate()
             .map(|(current_index, (first, second))| {
-                let address = address.clone();
 
                 let encrypted_index: FheUint8 =
                     FheUint8::try_encrypt_trivial(current_index as u8).unwrap();
-                let condition: &FheUint8 = &address.eq(&encrypted_index);
+                let condition = &address.eq(&encrypted_index);
+
+                let first_value = condition.if_then_else(first, &encrypt_trivial!(0u8));
+                let second_value = condition.if_then_else(second, &encrypt_trivial!(0u8));
 
                 let result: (FheUint8, FheUint8) = (
-                    result.0.clone() + first * condition,
-                    result.1.clone() + second * condition,
+                    result.0.clone() + first_value,
+                    result.1.clone() + second_value,
                 );
                 result
             })
@@ -65,24 +67,17 @@ impl MemoryUint8 {
 
     /// Schreibt einen Wert in den RAM und liest sowie schreibt dabei jede Zeile des RAMs einmal, damit
     /// kein Rückschluss auf die veränderte Zeile gezogen werden kann.
-    pub fn write_to_ram(&mut self, address: &FheUint8, new_value: &FheUint8, is_write: &FheUint8) {
+    pub fn write_to_ram(&mut self, address: &FheUint8, new_value: &FheUint8, is_write: &FheBool) {
         let start_time = Instant::now();
-        let one: FheUint8 = encrypt_trivial!(1 as u8);
 
         self.data
             .par_iter_mut()
             .enumerate()
             .for_each(|(index, field)| {
-                let new_value = new_value.clone();
-                let is_write = is_write.clone();
-                let one = one.clone();
-                let address = address.clone();
-
                 let encrypted_index: FheUint8 = FheUint8::try_encrypt_trivial(index as u8).unwrap();
-                let condition: FheUint8 = address.eq(&encrypted_index) * &is_write;
-                let not_condition: FheUint8 = &one - &condition;
+                let condition: FheBool = address.eq(&encrypted_index) & is_write;
 
-                field.1 = (condition * new_value.clone()) + (not_condition * field.1.clone());
+                field.1 = condition.if_then_else(&new_value, &field.1);
             });
 
         println!(

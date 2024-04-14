@@ -1,9 +1,9 @@
 use std::time::Instant;
 
+use tfhe::{FheBool, FheUint8};
 use tfhe::prelude::*;
-use tfhe::FheUint8;
-use crate::encrypt_trivial;
 
+use crate::encrypt_trivial;
 use crate::serverside::opcode_container_alu::OpcodeContainerAlu;
 
 ///
@@ -16,9 +16,9 @@ use crate::serverside::opcode_container_alu::OpcodeContainerAlu;
 ///
 pub struct Alu {
     pub(crate) opcodes: OpcodeContainerAlu,
-    pub(crate) zero_flag: FheUint8,
-    pub(crate) overflow_flag: FheUint8,
-    pub(crate) carry_flag: FheUint8,
+    pub(crate) zero_flag: FheBool,
+    pub(crate) overflow_flag: FheBool,
+    pub(crate) carry_flag: FheBool,
 }
 
 impl Alu {
@@ -35,7 +35,7 @@ impl Alu {
         op_code: &FheUint8,
         operand: &FheUint8,
         accu: &FheUint8,
-        is_alu_command: &FheUint8,
+        is_alu_command: &FheBool,
     ) -> FheUint8 {
         let start_time = Instant::now();
 
@@ -81,17 +81,14 @@ impl Alu {
 
         let result = add_and_result + or_xor_result + mul_sub_result;
 
-        let one: FheUint8 = encrypt_trivial!(1u8);
-
         // Zero-Flag
         self.zero_flag = result.eq(&encrypt_trivial!(0u8));
-        let new_overflow_flag: FheUint8 = self.calculate_overflow(operand, accu, &result);
-        self.overflow_flag =
-            new_overflow_flag * is_alu_command + &self.overflow_flag * (&one - is_alu_command);
 
-        let new_carry_flag: FheUint8 = self.calculate_carry(operand, accu);
-        self.carry_flag =
-            new_carry_flag * is_alu_command + &self.carry_flag * (&one - is_alu_command);
+        let new_overflow_flag: FheBool = self.calculate_overflow(operand, accu, &result);
+        self.overflow_flag = is_alu_command.if_then_else(&new_overflow_flag, &self.overflow_flag);
+
+        let new_carry_flag: FheBool = self.calculate_carry(operand, accu);
+        self.carry_flag = is_alu_command.if_then_else(&new_carry_flag, &self.carry_flag);
 
         println!(
             "[ALU, {}ms] Berechnung und Flags abgeschlossen.",
@@ -105,7 +102,7 @@ impl Alu {
     /// dann gab es einen Carry an vorletzter Stelle, also einen Overflow. <br>
     /// `Overflow = (A_msb ^ B_msb) ^ Result_msb`
     ///
-    fn calculate_overflow(&mut self, a: &FheUint8, b: &FheUint8, result: &FheUint8) -> FheUint8 {
+    fn calculate_overflow(&mut self, a: &FheUint8, b: &FheUint8, result: &FheUint8) -> FheBool {
         let negate_mask: &FheUint8 = &encrypt_trivial!(0b0000_0001u8);
         let msb_mask: &FheUint8 = &encrypt_trivial!(0b1000_0000u8);
         let masked_a: FheUint8 = a & msb_mask;
@@ -113,9 +110,9 @@ impl Alu {
         let masked_result: FheUint8 = result & msb_mask;
 
         // Ab hier steht der Wert, ob sie gleich oder ungleich sind im LSB
-        let equal: FheUint8 = (masked_a ^ masked_b).eq(masked_result);
+        let equal: FheBool = (masked_a ^ masked_b).eq(masked_result);
         // Overflow setzen, wenn sie UNGLEICH sind. Also !equal
-        &equal ^ negate_mask
+        !equal
     }
 
     ///
@@ -123,16 +120,16 @@ impl Alu {
     /// ODER wenn die beiden MSB ver-undet 1 ergeben. <br>
     /// `Carry = (((A_msb ^ B_msb).eq(msb_mask) & self.overflow_flag) | (A_msb.eq(B_msb)`
     ///
-    fn calculate_carry(&mut self, a: &FheUint8, b: &FheUint8) -> FheUint8 {
+    fn calculate_carry(&mut self, a: &FheUint8, b: &FheUint8) -> FheBool {
         let msb_mask: &FheUint8 = &encrypt_trivial!(0b1000_0000u8);
         let masked_a: FheUint8 = a & msb_mask;
         let masked_b: FheUint8 = b & msb_mask;
 
         let a_xor_b_masked: FheUint8 = &masked_a ^ &masked_b;
-        let not_equal: FheUint8 = a_xor_b_masked.eq(msb_mask);
+        let not_equal: FheBool = a_xor_b_masked.eq(msb_mask);
 
-        let left_side: FheUint8 = not_equal & &self.overflow_flag;
-        let right_side: FheUint8 = masked_a.eq(&masked_b);
+        let left_side: FheBool = not_equal & &self.overflow_flag;
+        let right_side: FheBool = masked_a.eq(&masked_b);
 
         left_side | right_side
     }
